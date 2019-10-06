@@ -3,7 +3,6 @@ package at.searles.storage
 import java.util.stream.Stream
 
 class Data {
-
     private val items = ArrayList<String>(100).also {
         (1..100).forEach { i -> it.add("$i") }
     }

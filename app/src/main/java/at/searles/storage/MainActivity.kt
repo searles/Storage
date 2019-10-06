@@ -13,12 +13,13 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import java.util.HashMap
 import android.view.MenuInflater
+import java.util.stream.Collectors
 
 class MainActivity : AppCompatActivity() {
 
     // TODO Data should be a viewmodel.
     private lateinit var data: Data
-    private lateinit var activeKeys: ArrayList<String>
+    private lateinit var activeKeys: List<String>
     private lateinit var activeKeyPositions: MutableMap<String, Int>
 
     private lateinit var selectionTracker: SelectionTracker<String>
@@ -32,9 +33,7 @@ class MainActivity : AppCompatActivity() {
         // set up data
         this.data = Data()
         activeKeyPositions = HashMap()
-        activeKeys = ArrayList<String>(data.size()).also {
-            data.keys().forEach { key -> it.add(key) }
-        }
+        activeKeys = data.keys().collect(Collectors.toList())
 
         adapter = StorageAdapter(this, data)
 
@@ -69,7 +68,7 @@ class MainActivity : AppCompatActivity() {
 
         adapter.setSelectionTracker(selectionTracker)
 
-        //toolbarView.setNavigationOnClickListener { selectionTracker.clearSelection() }
+        // todo nice for selection toolbarView.setNavigationOnClickListener { selectionTracker.clearSelection() }
 
         selectionTracker.addObserver(object : SelectionTracker.SelectionObserver<String>() {
             override fun onSelectionChanged() {
@@ -163,24 +162,22 @@ class MainActivity : AppCompatActivity() {
 
     private fun selectionUpdated() {
         if(selectionTracker.hasSelection()) {
-            if(selectionActionMode != null) return
-
-            selectionActionMode = startActionMode(actionModeCallback)
+            if(selectionActionMode == null) {
+                selectionActionMode = startActionMode(actionModeCallback)
+            }
         } else {
-            if(selectionActionMode == null) return
-
-            selectionActionMode!!.finish()
-            selectionActionMode = null
+            if(selectionActionMode != null) {
+                selectionActionMode!!.finish()
+                selectionActionMode = null
+            }
         }
     }
 
     private fun removeSelected() {
-        selectionTracker.selection.forEach {
-            data.remove(it)
-            activeKeys.remove(it)
-        }
-        afterActiveKeysUpdated()
+        activeKeys = activeKeys.filter { !selectionTracker.isSelected(it) }
+        selectionTracker.selection.forEach { data.remove(it) }
         selectionTracker.clearSelection()
+        afterActiveKeysUpdated()
     }
 
     /**
@@ -191,21 +188,19 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun updatePattern(pattern: String) {
-        activeKeys.clear()
-
-        if(pattern.isEmpty()) {
-            data.keys().forEach { activeKeys.add(it) }
+        activeKeys = if(pattern.isEmpty()) {
+            data.keys()
         } else {
             // TODO Change pattern matcher.
-            data.keys().filter { it.indexOf(pattern) != -1 }.forEach { activeKeys.add(it) }
-        }
+            data.keys().filter { it.indexOf(pattern) != -1 }
+        }.collect(Collectors.toList())
 
         afterActiveKeysUpdated()
     }
 
     private fun afterActiveKeysUpdated() {
         activeKeys.forEachIndexed { index, key -> activeKeyPositions[key] = index }
-        adapter.setActiveKeys(activeKeys)
+        adapter.submitList(activeKeys)
     }
 
     private inner class FilterWatcher : TextWatcher {

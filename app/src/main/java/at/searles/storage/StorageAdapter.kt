@@ -7,12 +7,13 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.recyclerview.selection.SelectionTracker
+import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 
-class StorageAdapter(private val context: Context, private val data: Data) : RecyclerView.Adapter<StorageAdapter.EntryViewHolder>() {
+class StorageAdapter(private val context: Context, private val data: Data) : ListAdapter<String, StorageAdapter.EntryViewHolder>(DiffCallback) {
 
     private var selectionTracker: SelectionTracker<String>? = null
-    private lateinit var activeKeys: List<String>
 
     override fun onCreateViewHolder(viewGroup: ViewGroup, viewType: Int): EntryViewHolder {
         val view = LayoutInflater.from(context).inflate(R.layout.view_item, viewGroup, false)
@@ -20,7 +21,7 @@ class StorageAdapter(private val context: Context, private val data: Data) : Rec
     }
 
     override fun onBindViewHolder(entryViewHolder: EntryViewHolder, position: Int) {
-        val key = activeKeys[position]
+        val key = getItem(position)
 
         var isSelected = false
         if (selectionTracker != null) {
@@ -32,14 +33,14 @@ class StorageAdapter(private val context: Context, private val data: Data) : Rec
         entryViewHolder.bind(isSelected, key)
     }
 
-    override fun getItemCount(): Int {
-        return activeKeys.size
-    }
+//    override fun getItemCount(): Int {
+//        return activeKeys.size
+//    }
 
-    fun setActiveKeys(activeKeys: List<String>) {
-        this.activeKeys = activeKeys
-        this.notifyDataSetChanged()
-    }
+//    fun setActiveKeys(activeKeys: List<String>) {
+//        this.activeKeys = activeKeys
+//        this.notifyDataSetChanged()
+//    }
 
     fun setSelectionTracker(selectionTracker: SelectionTracker<String>) {
         this.selectionTracker = selectionTracker
@@ -65,6 +66,16 @@ class StorageAdapter(private val context: Context, private val data: Data) : Rec
             } else {
                 itemView.setBackgroundColor(Color.GREEN)
             }
+        }
+    }
+
+    object DiffCallback: DiffUtil.ItemCallback<String>() {
+        override fun areItemsTheSame(oldItem: String, newItem: String): Boolean {
+            return oldItem === newItem
+        }
+
+        override fun areContentsTheSame(oldItem: String, newItem: String): Boolean {
+            return oldItem == newItem
         }
     }
 
