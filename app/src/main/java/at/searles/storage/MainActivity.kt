@@ -16,18 +16,14 @@ import android.view.MenuInflater
 
 class MainActivity : AppCompatActivity() {
 
-    // TODO Data should be a fragment.
+    // TODO Data should be a viewmodel.
     private lateinit var data: Data
-
-    private lateinit var selectionTracker: SelectionTracker<String>
-    private lateinit var adapter: StorageAdapter
-
-    // these next ones could be part of the key provider
     private lateinit var activeKeys: ArrayList<String>
     private lateinit var activeKeyPositions: MutableMap<String, Int>
 
-    private var actionMode: ActionMode? = null
-
+    private lateinit var selectionTracker: SelectionTracker<String>
+    private lateinit var adapter: StorageAdapter
+    private var selectionActionMode: ActionMode? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -158,20 +154,32 @@ class MainActivity : AppCompatActivity() {
 
         // Called when the user exits the action mode
         override fun onDestroyActionMode(mode: ActionMode) {
-            actionMode = null
+            if(selectionActionMode == mode) {
+                selectionTracker.clearSelection()
+                selectionActionMode = null
+            }
         }
     }
 
     private fun selectionUpdated() {
         if(selectionTracker.hasSelection()) {
-            actionMode = startActionMode(actionModeCallback)
+            if(selectionActionMode != null) return
+
+            selectionActionMode = startActionMode(actionModeCallback)
         } else {
-            actionMode?.finish()
+            if(selectionActionMode == null) return
+
+            selectionActionMode!!.finish()
+            selectionActionMode = null
         }
     }
 
     private fun removeSelected() {
-        selectionTracker.selection.forEach { data.remove(it) }
+        selectionTracker.selection.forEach {
+            data.remove(it)
+            activeKeys.remove(it)
+        }
+        afterActiveKeysUpdated()
         selectionTracker.clearSelection()
     }
 
