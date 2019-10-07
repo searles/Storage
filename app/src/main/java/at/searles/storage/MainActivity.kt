@@ -13,17 +13,20 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import java.util.HashMap
 import android.view.MenuInflater
-import java.util.stream.Collectors
+import android.widget.Toast
 
 class MainActivity : AppCompatActivity() {
 
-    // TODO Data should be a viewmodel.
+    // TODO Data should be a viewmodel with a livedata-key-list
     private lateinit var data: Data
     private lateinit var activeKeys: List<String>
-    private lateinit var activeKeyPositions: MutableMap<String, Int>
+    private lateinit var activeKeyPositions: Map<String, Int>
+
+    private lateinit var filterEditText: EditText
 
     private lateinit var selectionTracker: SelectionTracker<String>
     private lateinit var adapter: StorageAdapter
+
     private var selectionActionMode: ActionMode? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -32,24 +35,28 @@ class MainActivity : AppCompatActivity() {
 
         // set up data
         this.data = Data()
-        activeKeyPositions = HashMap()
-        activeKeys = data.keys().collect(Collectors.toList())
 
+        // set up data structures for viewing items
         adapter = StorageAdapter(this, data)
 
-        afterActiveKeysUpdated()
+        adapter.listener = { // FIXME remove
+            _, position -> Toast.makeText(this, "Hello $position", Toast.LENGTH_SHORT).show()
+        }
 
-        // set up view
-        val filterEditText = findViewById<EditText>(R.id.filterEditText)
+        // set up views
+        filterEditText = findViewById(R.id.filterEditText)
         filterEditText.addTextChangedListener(FilterWatcher())
 
+        // if there is a filter text still present, apply it.
+        updateActiveKeys()
+
+        // and now for the recycler view
         val recyclerView = findViewById<RecyclerView>(R.id.contentRecyclerView).apply {
             setHasFixedSize(true)
         }
 
         recyclerView.layoutManager = LinearLayoutManager(this)
 
-        // adapter must be set before building selectionTracker
         recyclerView.adapter = adapter
 
         recyclerView.setBackgroundColor(Color.BLUE) // FIXME remove
@@ -57,7 +64,7 @@ class MainActivity : AppCompatActivity() {
         // recyclerView.addItemDecoration(new SpacesItemDecoration(this, R.dimen.item_spacing));
 
         selectionTracker = SelectionTracker.Builder(
-            "entry-selection", //unique id
+            "entry-selection",
             recyclerView,
             EntryKeyProvider(),
             EntryDetailsLookup(recyclerView),
@@ -68,22 +75,17 @@ class MainActivity : AppCompatActivity() {
 
         adapter.setSelectionTracker(selectionTracker)
 
-        // todo nice for selection toolbarView.setNavigationOnClickListener { selectionTracker.clearSelection() }
-
         selectionTracker.addObserver(object : SelectionTracker.SelectionObserver<String>() {
             override fun onSelectionChanged() {
-                selectionUpdated() // toggle action mode
+                selectionUpdated()
                 super.onSelectionChanged()
             }
 
             override fun onSelectionRestored() {
-                selectionUpdated() // toggle action mode
+                selectionUpdated()
                 super.onSelectionRestored()
             }
         })
-
-        // if there is a filter text still present, apply it.
-        updatePattern(filterEditText.text.toString())
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -174,38 +176,38 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun removeSelected() {
-        activeKeys = activeKeys.filter { !selectionTracker.isSelected(it) }
         selectionTracker.selection.forEach { data.remove(it) }
         selectionTracker.clearSelection()
-        afterActiveKeysUpdated()
+        updateActiveKeys()
     }
 
     /**
      * Selects all active (!) keys
      */
     private fun selectAll() {
-        activeKeys.forEach { selectionTracker.select(it) }
+        selectionTracker.setItemsSelected(activeKeys, true)
     }
 
-    private fun updatePattern(pattern: String) {
-        activeKeys = if(pattern.isEmpty()) {
-            data.keys()
+    private fun updateActiveKeys() {
+        val pattern = filterEditText.text.toString()
+
+        this.activeKeys = if(pattern.isEmpty()) {
+            ArrayList(data.keys())
         } else {
-            // TODO Change pattern matcher.
             data.keys().filter { it.indexOf(pattern) != -1 }
-        }.collect(Collectors.toList())
+        }
 
-        afterActiveKeysUpdated()
-    }
+        this.activeKeyPositions = HashMap<String, Int>(activeKeys.size).apply {
+            activeKeys.forEachIndexed { index, key -> this[key] = index }
+        }
 
-    private fun afterActiveKeysUpdated() {
-        activeKeys.forEachIndexed { index, key -> activeKeyPositions[key] = index }
         adapter.submitList(activeKeys)
     }
 
+
     private inner class FilterWatcher : TextWatcher {
         override fun afterTextChanged(s: Editable) {
-            updatePattern(s.toString())
+            updateActiveKeys()
         }
 
         override fun beforeTextChanged(s: CharSequence, start: Int, count: Int, after: Int) {
@@ -217,28 +219,28 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-
     private inner class EntryKeyProvider : ItemKeyProvider<String>(SCOPE_CACHED) {
 
-        override fun getKey(i: Int): String? {
-            return activeKeys[i]
+        override fun getKey(position: Int): String? {
+            return activeKeys[position]
         }
 
-        override fun getPosition(s: String): Int {
-            return activeKeyPositions[s]!!
+        override fun getPosition(key: String): Int {
+            return activeKeyPositions[key]?: activeKeys.size
         }
     }
 
     private class EntryItemDetails : ItemDetailsLookup.ItemDetails<String>() {
         var pos: Int = 0
-        var key: String? = null
+        lateinit var key: String
 
         override fun getPosition(): Int = pos
 
-        override fun getSelectionKey(): String? = key
+        override fun getSelectionKey(): String = key
 
         override fun inSelectionHotspot(e: MotionEvent): Boolean {
-            return true
+            // clicks are not selections
+            return false
         }
 
         override fun inDragRegion(e: MotionEvent): Boolean {

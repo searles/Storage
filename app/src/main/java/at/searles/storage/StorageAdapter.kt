@@ -14,10 +14,13 @@ import androidx.recyclerview.widget.RecyclerView
 class StorageAdapter(private val context: Context, private val data: Data) : ListAdapter<String, StorageAdapter.EntryViewHolder>(DiffCallback) {
 
     private var selectionTracker: SelectionTracker<String>? = null
+    var listener: ((View, Int) -> Unit)? = null
 
     override fun onCreateViewHolder(viewGroup: ViewGroup, viewType: Int): EntryViewHolder {
         val view = LayoutInflater.from(context).inflate(R.layout.view_item, viewGroup, false)
-        return EntryViewHolder(view)
+        val viewHolder = EntryViewHolder(view)
+        view.setOnClickListener(viewHolder)
+        return viewHolder
     }
 
     override fun onBindViewHolder(entryViewHolder: EntryViewHolder, position: Int) {
@@ -33,24 +36,20 @@ class StorageAdapter(private val context: Context, private val data: Data) : Lis
         entryViewHolder.bind(isSelected, key)
     }
 
-//    override fun getItemCount(): Int {
-//        return activeKeys.size
-//    }
-
-//    fun setActiveKeys(activeKeys: List<String>) {
-//        this.activeKeys = activeKeys
-//        this.notifyDataSetChanged()
-//    }
-
     fun setSelectionTracker(selectionTracker: SelectionTracker<String>) {
         this.selectionTracker = selectionTracker
     }
 
-    inner class EntryViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+    inner class EntryViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView), View.OnClickListener {
+
         private val titleTextView: TextView = itemView.findViewById(R.id.titleTextView)
         private val subtitleTextView: TextView = itemView.findViewById(R.id.subtitleTextView)
 
         private lateinit var key: String
+
+        override fun onClick(view: View) {
+            listener?.invoke(view, adapterPosition)
+        }
 
         fun bind(isSelected: Boolean, key: String) {
             this.key = key

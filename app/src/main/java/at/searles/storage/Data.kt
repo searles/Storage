@@ -1,5 +1,6 @@
 package at.searles.storage
 
+import android.widget.ImageView
 import java.util.stream.Stream
 
 class Data {
@@ -7,8 +8,8 @@ class Data {
         (1..100).forEach { i -> it.add("$i") }
     }
 
-    fun keys(): Stream<String> {
-        return items.stream()
+    fun keys(): List<String> {
+        return items
     }
 
     /**
@@ -22,6 +23,8 @@ class Data {
     fun getSubtitle(key: String): String {
         return "subtitle " + key
     }
+
+    fun assignImage(imageView: ImageView) {} // FIXME
 
     fun size(): Int {
         return items.size
