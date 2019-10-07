@@ -1,9 +1,10 @@
 package at.searles.storage
 
 import android.widget.ImageView
+import androidx.lifecycle.ViewModel
 import java.util.stream.Stream
 
-class Data {
+class Data: ViewModel() {
     private val items = ArrayList<String>(100).also {
         (1..100).forEach { i -> it.add("$i") }
     }
@@ -17,17 +18,15 @@ class Data {
      * the search filter operates on the key.
      */
     fun getTitle(key: String): String {
-        return "title " + key
+        return "title $key"
     }
 
     fun getSubtitle(key: String): String {
-        return "subtitle " + key
+        return "subtitle $key"
     }
 
-    fun assignImage(imageView: ImageView) {} // FIXME
-
-    fun size(): Int {
-        return items.size
+    fun assignImage(imageView: ImageView) {
+        // FIXME
     }
 
     fun remove(key: String) {

@@ -1,6 +1,5 @@
 package at.searles.storage
 
-import android.graphics.Color
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
@@ -14,6 +13,8 @@ import androidx.recyclerview.widget.RecyclerView
 import java.util.HashMap
 import android.view.MenuInflater
 import android.widget.Toast
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 
 class MainActivity : AppCompatActivity() {
 
@@ -34,14 +35,14 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         // set up data
-        this.data = Data()
+        this.data = ViewModelProvider(this,
+            object: ViewModelProvider.Factory {
+                override fun <T : ViewModel> create(modelClass: Class<T>): T = modelClass.newInstance()
+            }
+        )[Data::class.java]
 
         // set up data structures for viewing items
         adapter = StorageAdapter(this, data)
-
-        adapter.listener = { // FIXME remove
-            _, position -> Toast.makeText(this, "Hello $position", Toast.LENGTH_SHORT).show()
-        }
 
         // set up views
         filterEditText = findViewById(R.id.filterEditText)
@@ -58,8 +59,6 @@ class MainActivity : AppCompatActivity() {
         recyclerView.layoutManager = LinearLayoutManager(this)
 
         recyclerView.adapter = adapter
-
-        recyclerView.setBackgroundColor(Color.BLUE) // FIXME remove
 
         // recyclerView.addItemDecoration(new SpacesItemDecoration(this, R.dimen.item_spacing));
 
@@ -86,6 +85,10 @@ class MainActivity : AppCompatActivity() {
                 super.onSelectionRestored()
             }
         })
+
+        adapter.listener = { // FIXME remove
+                _, position -> Toast.makeText(this, "Hello ${activeKeys[position]}", Toast.LENGTH_SHORT).show()
+        }
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -204,24 +207,18 @@ class MainActivity : AppCompatActivity() {
         adapter.submitList(activeKeys)
     }
 
-
     private inner class FilterWatcher : TextWatcher {
         override fun afterTextChanged(s: Editable) {
             updateActiveKeys()
         }
 
-        override fun beforeTextChanged(s: CharSequence, start: Int, count: Int, after: Int) {
-            // ignore
-        }
+        override fun beforeTextChanged(s: CharSequence, start: Int, count: Int, after: Int) {}
 
-        override fun onTextChanged(s: CharSequence, start: Int, before: Int, count: Int) {
-            // ignore
-        }
+        override fun onTextChanged(s: CharSequence, start: Int, before: Int, count: Int) {}
     }
 
     private inner class EntryKeyProvider : ItemKeyProvider<String>(SCOPE_CACHED) {
-
-        override fun getKey(position: Int): String? {
+        override fun getKey(position: Int): String {
             return activeKeys[position]
         }
 
@@ -248,9 +245,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-
     private inner class EntryDetailsLookup(private val recyclerView: RecyclerView) : ItemDetailsLookup<String>() {
-
         private val entryDetails = EntryItemDetails()
 
         override fun getItemDetails(motionEvent: MotionEvent): ItemDetails<String>? {
@@ -258,15 +253,10 @@ class MainActivity : AppCompatActivity() {
 
             val viewHolder = recyclerView.getChildViewHolder(view)
 
-            if (viewHolder is StorageAdapter.EntryViewHolder) {
-                val position = viewHolder.adapterPosition
-                entryDetails.pos = position
-                entryDetails.key = activeKeys[position]
+            entryDetails.pos = viewHolder.adapterPosition
+            entryDetails.key = activeKeys[viewHolder.adapterPosition]
 
-                return entryDetails
-            }
-
-            return null
+            return entryDetails
         }
     }
 }
