@@ -5,6 +5,7 @@ import android.graphics.Color
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.selection.SelectionTracker
 import androidx.recyclerview.widget.DiffUtil
@@ -44,6 +45,7 @@ class StorageAdapter(private val context: Context, private val data: Data) : Lis
 
         private val titleTextView: TextView = itemView.findViewById(R.id.titleTextView)
         private val subtitleTextView: TextView = itemView.findViewById(R.id.subtitleTextView)
+        private val iconImageView: ImageView = itemView.findViewById(R.id.iconImageView)
 
         private lateinit var key: String
 
@@ -57,6 +59,7 @@ class StorageAdapter(private val context: Context, private val data: Data) : Lis
             // set ui
             titleTextView.text = data.getTitle(key)
             subtitleTextView.text = data.getSubtitle(key)
+            data.getImageInView(key, iconImageView)
 
             itemView.isActivated = isSelected
 

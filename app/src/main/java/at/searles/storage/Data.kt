@@ -2,6 +2,7 @@ package at.searles.storage
 
 import android.widget.ImageView
 import androidx.lifecycle.ViewModel
+import com.bumptech.glide.Glide
 import java.util.stream.Stream
 
 class Data: ViewModel() {
@@ -25,8 +26,13 @@ class Data: ViewModel() {
         return "subtitle $key"
     }
 
-    fun assignImage(imageView: ImageView) {
-        // FIXME
+    fun getImageInView(key: String, imageView: ImageView) {
+        Glide
+            .with(imageView.context)
+            .load(R.drawable.ic_launcher_foreground)
+            .centerCrop()
+            // TODO .placeholder(R.drawable.loading_spinner)
+            .into(imageView)
     }
 
     fun remove(key: String) {
