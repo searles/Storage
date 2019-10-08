@@ -1,8 +1,12 @@
 package at.searles.storage
 
+import android.graphics.Typeface
 import android.os.Bundle
 import android.text.Editable
+import android.text.Spannable
+import android.text.SpannableString
 import android.text.TextWatcher
+import android.text.style.StyleSpan
 import android.view.*
 import android.widget.EditText
 import androidx.appcompat.app.AppCompatActivity
@@ -15,13 +19,15 @@ import android.view.MenuInflater
 import android.widget.Toast
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import androidx.recyclerview.widget.DividerItemDecoration
+import at.searles.stringsort.NaturalPatternMatcher
 
 class MainActivity : AppCompatActivity() {
 
     // TODO Data should be a viewmodel with a livedata-key-list
     private lateinit var data: Data
-    private lateinit var activeKeys: List<String>
-    private lateinit var activeKeyPositions: Map<String, Int>
+    private lateinit var active: List<String>
+    private lateinit var activePositions: Map<String, Int>
 
     private lateinit var filterEditText: EditText
 
@@ -60,7 +66,7 @@ class MainActivity : AppCompatActivity() {
 
         recyclerView.adapter = adapter
 
-        // recyclerView.addItemDecoration(new SpacesItemDecoration(this, R.dimen.item_spacing));
+        recyclerView.addItemDecoration(DividerItemDecoration(this, LinearLayoutManager.VERTICAL))
 
         selectionTracker = SelectionTracker.Builder(
             "entry-selection",
@@ -87,7 +93,7 @@ class MainActivity : AppCompatActivity() {
         })
 
         adapter.listener = { // FIXME remove
-                _, position -> Toast.makeText(this, "Hello ${activeKeys[position]}", Toast.LENGTH_SHORT).show()
+                _, position -> Toast.makeText(this, "Hello ${active[position]}", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -119,7 +125,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onBackPressed() {
         if (selectionTracker.hasSelection()) {
-            selectionTracker.clearSelection() // FIXME does this call observer?
+            selectionTracker.clearSelection()
         } else {
             super.onBackPressed()
         }
@@ -185,26 +191,33 @@ class MainActivity : AppCompatActivity() {
     }
 
     /**
-     * Selects all active (!) keys
+     * Selects all active (!) names
      */
     private fun selectAll() {
-        selectionTracker.setItemsSelected(activeKeys, true)
+        selectionTracker.setItemsSelected(active, true)
     }
 
     private fun updateActiveKeys() {
         val pattern = filterEditText.text.toString()
 
-        this.activeKeys = if(pattern.isEmpty()) {
-            ArrayList(data.keys())
+        this.active = if(pattern.isEmpty()) {
+            ArrayList(data.names())
         } else {
-            data.keys().filter { it.indexOf(pattern) != -1 }
+            data.names().filter { NaturalPatternMatcher.match(it, pattern) }
         }
 
-        this.activeKeyPositions = HashMap<String, Int>(activeKeys.size).apply {
-            activeKeys.forEachIndexed { index, key -> this[key] = index }
+        this.activePositions = HashMap<String, Int>(active.size).apply {
+            active.forEachIndexed { index, name -> this[name] = index }
         }
 
-        adapter.submitList(activeKeys)
+        adapter.submitList(active.map {
+            SpannableString(it).apply {
+                NaturalPatternMatcher.match(this, pattern) {
+                        start, end ->
+                            setSpan(StyleSpan(Typeface.BOLD), start, end, Spannable.SPAN_INCLUSIVE_INCLUSIVE)
+                }
+            }
+        })
     }
 
     private inner class FilterWatcher : TextWatcher {
@@ -219,21 +232,21 @@ class MainActivity : AppCompatActivity() {
 
     private inner class EntryKeyProvider : ItemKeyProvider<String>(SCOPE_CACHED) {
         override fun getKey(position: Int): String {
-            return activeKeys[position]
+            return active[position]
         }
 
-        override fun getPosition(key: String): Int {
-            return activeKeyPositions[key]?: activeKeys.size
+        override fun getPosition(name: String): Int {
+            return activePositions[name]?: active.size
         }
     }
 
     private class EntryItemDetails : ItemDetailsLookup.ItemDetails<String>() {
         var pos: Int = 0
-        lateinit var key: String
+        lateinit var name: String
 
         override fun getPosition(): Int = pos
 
-        override fun getSelectionKey(): String = key
+        override fun getSelectionKey(): String = name
 
         override fun inSelectionHotspot(e: MotionEvent): Boolean {
             // clicks are not selections
@@ -254,7 +267,7 @@ class MainActivity : AppCompatActivity() {
             val viewHolder = recyclerView.getChildViewHolder(view)
 
             entryDetails.pos = viewHolder.adapterPosition
-            entryDetails.key = activeKeys[viewHolder.adapterPosition]
+            entryDetails.name = active[viewHolder.adapterPosition]
 
             return entryDetails
         }

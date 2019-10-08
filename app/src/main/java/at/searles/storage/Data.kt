@@ -3,30 +3,21 @@ package at.searles.storage
 import android.widget.ImageView
 import androidx.lifecycle.ViewModel
 import com.bumptech.glide.Glide
-import java.util.stream.Stream
 
 class Data: ViewModel() {
     private val items = ArrayList<String>(100).also {
-        (1..100).forEach { i -> it.add("$i") }
+        (1..1000).forEach { i -> it.add("abc$i") }
     }
 
-    fun keys(): List<String> {
+    fun names(): List<String> {
         return items
     }
 
-    /**
-     * The title should always at least contain the key as a substring because
-     * the search filter operates on the key.
-     */
-    fun getTitle(key: String): String {
-        return "title $key"
+    fun getDescription(name: String): String {
+        return "subtitle $name"
     }
 
-    fun getSubtitle(key: String): String {
-        return "subtitle $key"
-    }
-
-    fun getImageInView(key: String, imageView: ImageView) {
+    fun getImageInView(name: String, imageView: ImageView) {
         Glide
             .with(imageView.context)
             .load(R.drawable.ic_launcher_foreground)
@@ -35,7 +26,7 @@ class Data: ViewModel() {
             .into(imageView)
     }
 
-    fun remove(key: String) {
-        items.remove(key)
+    fun remove(name: String) {
+        items.remove(name)
     }
 }
