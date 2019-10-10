@@ -176,6 +176,11 @@ class MainActivity : AppCompatActivity() {
             if(selectionActionMode == null) {
                 selectionActionMode = startActionMode(actionModeCallback)
             }
+
+            val selectedCount = selectionTracker.selection.size()
+            val count = data.size()
+
+            selectionActionMode!!.title = "$selectedCount ($count) selected"
         } else {
             if(selectionActionMode != null) {
                 selectionActionMode!!.finish()

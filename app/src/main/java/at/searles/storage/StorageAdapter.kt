@@ -65,12 +65,6 @@ class StorageAdapter(private val context: Context, private val data: Data) : Lis
             data.getImageInView(name.toString(), iconImageView)
 
             itemView.isActivated = isSelected
-
-//            if (isSelected) {
-//                itemView.setBackgroundColor(highlightBackground)
-//            } else {
-//                itemView.setBackgroundColor(Color.TRANSPARENT)
-//            }
         }
     }
 

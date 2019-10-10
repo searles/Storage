@@ -1,11 +1,34 @@
 <resources>
 
     <!-- Base application theme. -->
-    <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
-        <!-- Customize your theme here. -->
-        <item name="colorPrimary">@color/colorPrimary</item>
-        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
-        <item name="colorAccent">@color/colorAccent</item>
-    </style>
+    <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar" />
 
+
+    <style name="AppThemeDark" parent="Theme.AppCompat">
+        <item name="colorPrimary">@color/primaryColor</item> <!-- background title bar -->
+        <item name="colorPrimaryDark">@color/primaryDarkColor</item> <!-- background status bar -->
+        <item name="android:actionModeBackground">@color/base01Color</item> <!-- Background of title bar in action mode. Must be a link -->
+        <item name="android:textColorPrimary">@color/base0Color</item> <!-- main font color -->
+        <item name="colorAccent">#f00</item> <!-- used for eg cursor color. light version is text selection-->
+        <item name="android:textColor">@color/base3Color</item> <!-- text color inside textviews -->
+        <item name="android:textColorHighlight">@color/base01Color</item> <!-- Text selection in editText -->
+        <item name="colorControlNormal">@color/base02Color</item>
+        <item name="colorControlActivated">@color/base00Color</item>
+        <item name="colorControlHighlight">@color/base01Color</item>
+        <item name="android:background">@color/base03Color</item>
+    </style>-
+
+    <style name="AppThemeLight" parent="Theme.AppCompat.Light.DarkActionBar">
+        <item name="colorPrimary">#f00</item> <!-- background title bar -->
+        <item name="colorPrimaryDark">#a00</item> <!-- background status bar -->
+        <item name="android:actionModeBackground">@color/secondaryColor</item> <!-- Background of title bar in action mode. Must be a link -->
+        <item name="android:textColorPrimary">#040</item> <!-- main font color -->
+        <item name="colorAccent">#aaf</item> <!-- used for eg cursor color. light version is text selection-->
+        <item name="android:textColor">@color/base03Color</item> <!-- text color inside textviews -->
+        <item name="android:textColorHighlight">@color/base1Color</item> <!-- Text selection in editText -->
+        <item name="colorControlNormal">#f00</item>
+        <item name="colorControlActivated">#00f</item>
+        <item name="colorControlHighlight">#f0f</item>
+        <item name="android:background">@color/base3Color</item>
+    </style>-
 </resources>

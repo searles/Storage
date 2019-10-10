@@ -9,6 +9,8 @@ class Data: ViewModel() {
         (1..1000).forEach { i -> it.add("abc$i") }
     }
 
+    fun size(): Int = items.size
+
     fun names(): List<String> {
         return items
     }
