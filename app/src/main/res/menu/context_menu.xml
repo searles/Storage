@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<menu xmlns:android="http://schemas.android.com/apk/res/android">
+<menu xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <item android:title="@android:string/selectAll" android:id="@+id/select_all"/>
-    <item android:title="Remove Items" android:id="@+id/remove_items"/>
+    <item android:title="@string/delete" android:icon="@android:drawable/ic_menu_delete" android:id="@+id/delete_items"/>
+    <item android:title="@string/rename" android:id="@+id/rename_items"/>
+    <item android:title="@string/export" android:id="@+id/export_items"/>
 </menu>

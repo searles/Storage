@@ -48,13 +48,16 @@ class StorageAdapter(private val context: Context, private val data: Data) : Lis
     }
 
     inner class EntryViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView), View.OnClickListener {
-
         private val nameTextView: TextView = itemView.findViewById(R.id.nameTextView)
         private val descriptionTextView: TextView = itemView.findViewById(R.id.descriptionTextView)
         private val iconImageView: ImageView = itemView.findViewById(R.id.iconImageView)
 
         override fun onClick(view: View) {
-            listener?.invoke(view, adapterPosition)
+            if(selectionTracker == null || !selectionTracker!!.hasSelection()) {
+                listener?.invoke(view, adapterPosition)
+            }
+
+            // otherwise  it is a long click in a selection.
         }
 
         fun bind(isSelected: Boolean, name: SpannableString) {

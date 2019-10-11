@@ -17,12 +17,14 @@ import androidx.recyclerview.widget.RecyclerView
 import java.util.HashMap
 import android.view.MenuInflater
 import android.widget.Toast
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.DividerItemDecoration
 import at.searles.stringsort.NaturalPatternMatcher
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(), LifecycleOwner {
 
     // TODO Data should be a viewmodel with a livedata-key-list
     private lateinit var data: Data
@@ -46,6 +48,8 @@ class MainActivity : AppCompatActivity() {
                 override fun <T : ViewModel> create(modelClass: Class<T>): T = modelClass.newInstance()
             }
         )[Data::class.java]
+
+        data.getNames().observe(this, Observer<List<String>> { updateActiveKeys() })
 
         // set up data structures for viewing items
         adapter = StorageAdapter(this, data)
@@ -153,8 +157,8 @@ class MainActivity : AppCompatActivity() {
                     selectAll()
                     true
                 }
-                R.id.remove_items -> {
-                    removeSelected()
+                R.id.delete_items -> {
+                    deleteSelected()
                     mode.finish()
                     true
                 }
@@ -189,10 +193,9 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun removeSelected() {
-        selectionTracker.selection.forEach { data.remove(it) }
+    private fun deleteSelected() {
+        selectionTracker.selection.forEach { data.delete(it) }
         selectionTracker.clearSelection()
-        updateActiveKeys()
     }
 
     /**
@@ -206,9 +209,9 @@ class MainActivity : AppCompatActivity() {
         val pattern = filterEditText.text.toString()
 
         this.active = if(pattern.isEmpty()) {
-            ArrayList(data.names())
+            ArrayList(data.getNames().value!!)
         } else {
-            data.names().filter { NaturalPatternMatcher.match(it, pattern) }
+            data.getNames().value!!.filter { NaturalPatternMatcher.match(it, pattern) }
         }
 
         this.activePositions = HashMap<String, Int>(active.size).apply {

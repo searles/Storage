@@ -9,8 +9,8 @@
   <color name="secondaryColor">#ffa000</color>
   <color name="secondaryLightColor">#ffd149</color>
   <color name="secondaryDarkColor">#c67100</color>
-  <color name="primaryTextColor">#ffffff</color>
-  <color name="secondaryTextColor">#000000</color>
+  <!--<color name="primaryTextColor">#ffffff</color>-->
+  <!--<color name="secondaryTextColor">#000000</color>-->
   <color name="base03Color">#002b36</color>
   <color name="base02Color">#073642</color>
   <color name="base01Color">#586e75</color>
