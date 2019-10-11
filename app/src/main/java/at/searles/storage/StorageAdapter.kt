@@ -1,11 +1,7 @@
 package at.searles.storage
 
 import android.content.Context
-import android.graphics.Color
-import android.graphics.Typeface
 import android.text.SpannableString
-import android.text.style.StyleSpan
-import android.util.TypedValue
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -16,19 +12,10 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 
-class StorageAdapter(private val context: Context, private val data: Data) : ListAdapter<SpannableString, StorageAdapter.EntryViewHolder>(DiffCallback) {
+class StorageAdapter(private val context: Context, private val informationProvider: InformationProvider) : ListAdapter<SpannableString, StorageAdapter.EntryViewHolder>(DiffCallback) {
 
-    private var selectionTracker: SelectionTracker<String>? = null
+    private lateinit var selectionTracker: SelectionTracker<String>
     var listener: ((View, Int) -> Unit)? = null
-
-    private val highlightBackground: Int
-
-    init {
-        // TODO: This would be much better in a selector xml
-        val value = TypedValue()
-        context.theme.resolveAttribute(android.R.attr.textColorHighlight, value, true)
-        highlightBackground = value.data or 0xff000000.toInt()
-    }
 
     override fun onCreateViewHolder(viewGroup: ViewGroup, viewType: Int): EntryViewHolder {
         val view = LayoutInflater.from(context).inflate(R.layout.view_item, viewGroup, false)
@@ -39,7 +26,7 @@ class StorageAdapter(private val context: Context, private val data: Data) : Lis
 
     override fun onBindViewHolder(entryViewHolder: EntryViewHolder, position: Int) {
         val name = getItem(position)
-        val isSelected = selectionTracker != null && selectionTracker!!.isSelected(name.toString())
+        val isSelected = selectionTracker.isSelected(name.toString())
         entryViewHolder.bind(isSelected, name)
     }
 
@@ -53,7 +40,7 @@ class StorageAdapter(private val context: Context, private val data: Data) : Lis
         private val iconImageView: ImageView = itemView.findViewById(R.id.iconImageView)
 
         override fun onClick(view: View) {
-            if(selectionTracker == null || !selectionTracker!!.hasSelection()) {
+            if(!selectionTracker.hasSelection()) {
                 listener?.invoke(view, adapterPosition)
             }
 
@@ -64,8 +51,8 @@ class StorageAdapter(private val context: Context, private val data: Data) : Lis
             // set ui
             nameTextView.text = name
 
-            descriptionTextView.text = data.getDescription(name.toString())
-            data.getImageInView(name.toString(), iconImageView)
+            descriptionTextView.text = informationProvider.getDescription(name.toString())
+            informationProvider.setImageInView(name.toString(), iconImageView)
 
             itemView.isActivated = isSelected
         }

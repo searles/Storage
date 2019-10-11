@@ -26,8 +26,7 @@ import at.searles.stringsort.NaturalPatternMatcher
 
 class MainActivity : AppCompatActivity(), LifecycleOwner {
 
-    // TODO Data should be a viewmodel with a livedata-key-list
-    private lateinit var data: Data
+    private lateinit var namesProvider: NamesProvider
     private lateinit var active: List<String>
     private lateinit var activePositions: Map<String, Int>
 
@@ -43,16 +42,14 @@ class MainActivity : AppCompatActivity(), LifecycleOwner {
         setContentView(R.layout.activity_main)
 
         // set up data
-        this.data = ViewModelProvider(this,
-            object: ViewModelProvider.Factory {
-                override fun <T : ViewModel> create(modelClass: Class<T>): T = modelClass.newInstance()
-            }
-        )[Data::class.java]
+        this.namesProvider = getNamesProvider()
 
-        data.getNames().observe(this, Observer<List<String>> { updateActiveKeys() })
+        namesProvider.getNames().observe(this, Observer<List<String>> { updateActiveKeys() })
 
         // set up data structures for viewing items
-        adapter = StorageAdapter(this, data)
+        adapter = StorageAdapter(this, getInformationProvider())
+
+        adapter.listener = { _, position -> confirm(active[position]) }
 
         // set up views
         filterEditText = findViewById(R.id.filterEditText)
@@ -95,10 +92,6 @@ class MainActivity : AppCompatActivity(), LifecycleOwner {
                 super.onSelectionRestored()
             }
         })
-
-        adapter.listener = { // FIXME remove
-                _, position -> Toast.makeText(this, "Hello ${active[position]}", Toast.LENGTH_SHORT).show()
-        }
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -111,6 +104,10 @@ class MainActivity : AppCompatActivity(), LifecycleOwner {
         return when(item.itemId) {
             R.id.select_all -> {
                 selectAll()
+                true
+            }
+            R.id.import_items -> {
+                // TODO
                 true
             }
             else -> super.onOptionsItemSelected(item)
@@ -133,6 +130,29 @@ class MainActivity : AppCompatActivity(), LifecycleOwner {
         } else {
             super.onBackPressed()
         }
+    }
+
+    fun getNamesProvider(): NamesProvider {
+        // TODO make this one abstract
+        return ViewModelProvider(this,
+            object: ViewModelProvider.Factory {
+                override fun <T : ViewModel> create(modelClass: Class<T>): T = modelClass.newInstance()
+            }
+        )[Data::class.java]
+    }
+
+    fun getInformationProvider(): InformationProvider {
+        // TODO make this one abstract
+        return ViewModelProvider(this,
+            object: ViewModelProvider.Factory {
+                override fun <T : ViewModel> create(modelClass: Class<T>): T = modelClass.newInstance()
+            }
+        )[Data::class.java]
+    }
+
+    fun confirm(name: String) {
+        // TODO: make this one abstract
+        Toast.makeText(this, "Hello $name", Toast.LENGTH_SHORT).show()
     }
 
     private val actionModeCallback = object : ActionMode.Callback {
@@ -162,6 +182,18 @@ class MainActivity : AppCompatActivity(), LifecycleOwner {
                     mode.finish()
                     true
                 }
+                R.id.rename_items -> {
+                    // TODO
+                    true
+                }
+                R.id.import_items -> {
+                    // TODO
+                    true
+                }
+                R.id.export_items -> {
+                    // TODO
+                    true
+                }
                 else -> false
             }
         }
@@ -182,7 +214,7 @@ class MainActivity : AppCompatActivity(), LifecycleOwner {
             }
 
             val selectedCount = selectionTracker.selection.size()
-            val count = data.size()
+            val count = namesProvider.size()
 
             selectionActionMode!!.title = "$selectedCount ($count) selected"
         } else {
@@ -194,7 +226,7 @@ class MainActivity : AppCompatActivity(), LifecycleOwner {
     }
 
     private fun deleteSelected() {
-        selectionTracker.selection.forEach { data.delete(it) }
+        selectionTracker.selection.forEach { namesProvider.delete(it) }
         selectionTracker.clearSelection()
     }
 
@@ -209,9 +241,9 @@ class MainActivity : AppCompatActivity(), LifecycleOwner {
         val pattern = filterEditText.text.toString()
 
         this.active = if(pattern.isEmpty()) {
-            ArrayList(data.getNames().value!!)
+            ArrayList(namesProvider.getNames().value!!)
         } else {
-            data.getNames().value!!.filter { NaturalPatternMatcher.match(it, pattern) }
+            namesProvider.getNames().value!!.filter { NaturalPatternMatcher.match(it, pattern) }
         }
 
         this.activePositions = HashMap<String, Int>(active.size).apply {
