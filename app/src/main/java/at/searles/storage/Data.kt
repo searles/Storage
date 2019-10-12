@@ -11,17 +11,19 @@ class Data: ViewModel(), InformationProvider, NamesProvider {
         (1..1000).forEach { i -> it.add("abc$i") }
     }
 
-    private val names = MutableLiveData<List<String>>().apply { value = items }
-
     override fun size(): Int = items.size
 
-    override fun getNames(): LiveData<List<String>> {
-        return names
+    override fun getNames(): List<String> {
+        return items
     }
 
     override fun delete(name: String) {
         items.remove(name)
-        names.value = items
+    }
+
+    override fun rename(oldName: String, newName: String) {
+        items.remove(oldName)
+        items.add(newName)
     }
 
     override fun getDescription(name: String): String {

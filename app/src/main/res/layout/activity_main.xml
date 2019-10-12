@@ -6,20 +6,26 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
-    <EditText
-        android:id="@+id/filterEditText"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="8dp"
-        android:layout_marginEnd="8dp"
-        android:ems="10"
-        android:hint="Find"
-        android:inputType="textPersonName"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        android:drawableEnd="@android:drawable/ic_menu_search"/>
+    <com.google.android.material.textfield.TextInputLayout android:id="@+id/filterTextInputLayout"
+                                                           android:layout_width="0dp"
+                                                           android:layout_height="wrap_content"
+                                                           app:layout_constraintEnd_toEndOf="parent"
+                                                           app:layout_constraintStart_toStartOf="parent"
+                                                           app:layout_constraintTop_toTopOf="parent">
+        <EditText
+                android:id="@+id/filterEditText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:layout_marginTop="8dp"
+                android:layout_marginEnd="8dp"
+                android:ems="10"
+                android:hint="@android:string/search_go"
+                android:inputType="textPersonName"
+                android:drawableStart="@android:drawable/ic_menu_search"
+                android:importantForAutofill="no"
+                tools:targetApi="o"/>
+    </com.google.android.material.textfield.TextInputLayout>
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/contentRecyclerView"
@@ -32,5 +38,5 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/filterEditText" />
+        app:layout_constraintTop_toBottomOf="@+id/filterTextInputLayout" />
 </androidx.constraintlayout.widget.ConstraintLayout>

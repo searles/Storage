@@ -14,15 +14,14 @@ import androidx.recyclerview.selection.*
 import androidx.recyclerview.selection.SelectionPredicates.createSelectAnything
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import java.util.HashMap
 import android.view.MenuInflater
 import android.widget.Toast
 import androidx.lifecycle.LifecycleOwner
-import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.DividerItemDecoration
 import at.searles.stringsort.NaturalPatternMatcher
+import java.util.*
 
 class MainActivity : AppCompatActivity(), LifecycleOwner {
 
@@ -43,8 +42,6 @@ class MainActivity : AppCompatActivity(), LifecycleOwner {
 
         // set up data
         this.namesProvider = getNamesProvider()
-
-        namesProvider.getNames().observe(this, Observer<List<String>> { updateActiveKeys() })
 
         // set up data structures for viewing items
         adapter = StorageAdapter(this, getInformationProvider())
@@ -183,7 +180,8 @@ class MainActivity : AppCompatActivity(), LifecycleOwner {
                     true
                 }
                 R.id.rename_items -> {
-                    // TODO
+                    RenameDialogFragment.create(selectionTracker.selection.first())
+                        .show(supportFragmentManager, "dialog")
                     true
                 }
                 R.id.import_items -> {
@@ -217,6 +215,9 @@ class MainActivity : AppCompatActivity(), LifecycleOwner {
             val count = namesProvider.size()
 
             selectionActionMode!!.title = "$selectedCount ($count) selected"
+
+            val renameMenu = selectionActionMode!!.menu.findItem(R.id.rename_items)
+            renameMenu.isEnabled = selectedCount == 1
         } else {
             if(selectionActionMode != null) {
                 selectionActionMode!!.finish()
@@ -228,6 +229,14 @@ class MainActivity : AppCompatActivity(), LifecycleOwner {
     private fun deleteSelected() {
         selectionTracker.selection.forEach { namesProvider.delete(it) }
         selectionTracker.clearSelection()
+        updateActiveKeys()
+    }
+
+    fun rename(oldName: String, newName: String) {
+        selectionTracker.deselect(oldName)
+        namesProvider.rename(oldName, newName)
+        updateActiveKeys()
+        selectionTracker.select(newName)
     }
 
     /**
@@ -241,9 +250,9 @@ class MainActivity : AppCompatActivity(), LifecycleOwner {
         val pattern = filterEditText.text.toString()
 
         this.active = if(pattern.isEmpty()) {
-            ArrayList(namesProvider.getNames().value!!)
+            ArrayList(namesProvider.getNames())
         } else {
-            namesProvider.getNames().value!!.filter { NaturalPatternMatcher.match(it, pattern) }
+            namesProvider.getNames().filter { NaturalPatternMatcher.match(it, pattern) }
         }
 
         this.activePositions = HashMap<String, Int>(active.size).apply {
@@ -252,7 +261,8 @@ class MainActivity : AppCompatActivity(), LifecycleOwner {
 
         adapter.submitList(active.map {
             SpannableString(it).apply {
-                NaturalPatternMatcher.match(this, pattern) {
+                if(pattern.isNotEmpty())
+                    NaturalPatternMatcher.match(this, pattern) {
                         start, end ->
                             setSpan(StyleSpan(Typeface.BOLD), start, end, Spannable.SPAN_INCLUSIVE_INCLUSIVE)
                 }

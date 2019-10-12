@@ -5,4 +5,5 @@
     <string name="rename">Rename</string>
     <string name="export">Export</string>
     <string name="delete">Delete</string>
+    <string name="new_name">New Name</string>
 </resources>

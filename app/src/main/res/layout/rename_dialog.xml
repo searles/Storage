@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:tools="http://schemas.android.com/tools"
+              android:orientation="vertical"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent">
+    <com.google.android.material.textfield.TextInputLayout android:id="@+id/renameTextInputLayout"
+                                                           android:layout_width="match_parent"
+                                                           android:layout_height="wrap_content">
+        <EditText
+                android:id="@+id/renameEditText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ems="10"
+                android:hint="@string/new_name"
+                android:inputType="textPersonName"
+                android:importantForAutofill="no"
+                tools:targetApi="o"/>
+    </com.google.android.material.textfield.TextInputLayout>
+
+</LinearLayout>
