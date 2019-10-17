@@ -1,4 +1,4 @@
-package at.searles.storage
+package at.searles.android.storage
 
 import android.content.Intent
 import android.graphics.Typeface
@@ -16,17 +16,14 @@ import androidx.recyclerview.selection.SelectionPredicates.createSelectAnything
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import android.view.MenuInflater
-import android.widget.Toast
 import androidx.lifecycle.LifecycleOwner
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.DividerItemDecoration
-import at.searles.storage.data.Data
-import at.searles.storage.data.InformationProvider
+import at.searles.android.storage.data.InformationProvider
+import at.searles.storage.R
 import at.searles.stringsort.NaturalPatternMatcher
 import java.util.*
 
-class MainActivity : AppCompatActivity(), LifecycleOwner {
+abstract class StorageActivity : AppCompatActivity(), LifecycleOwner {
 
     private lateinit var informationProvider: InformationProvider.Mutable
     private lateinit var active: List<String>
@@ -77,7 +74,7 @@ class MainActivity : AppCompatActivity(), LifecycleOwner {
             StorageStrategy.createStringStorage()
         ).withSelectionPredicate(
             createSelectAnything())
-        .build()
+            .build()
 
         adapter.setSelectionTracker(selectionTracker)
 
@@ -132,19 +129,9 @@ class MainActivity : AppCompatActivity(), LifecycleOwner {
         }
     }
 
-    fun initInformationProvider(): InformationProvider.Mutable {
-        // TODO make this one abstract
-        return ViewModelProvider(this,
-            object: ViewModelProvider.Factory {
-                override fun <T : ViewModel> create(modelClass: Class<T>): T = modelClass.newInstance()
-            }
-        )[Data::class.java]
-    }
+    abstract fun initInformationProvider(): InformationProvider.Mutable
 
-    fun confirm(name: String) {
-        // TODO: make this one abstract
-        Toast.makeText(this, "Selected $name", Toast.LENGTH_SHORT).show()
-    }
+    abstract fun confirm(name: String)
 
     private val actionModeCallback = object : ActionMode.Callback {
         // Called when the action mode is created; startActionMode() was called
@@ -257,9 +244,9 @@ class MainActivity : AppCompatActivity(), LifecycleOwner {
             SpannableString(it).apply {
                 if(pattern.isNotEmpty())
                     NaturalPatternMatcher.match(this, pattern) {
-                        start, end ->
-                            setSpan(StyleSpan(Typeface.BOLD), start, end, Spannable.SPAN_INCLUSIVE_INCLUSIVE)
-                }
+                            start, end ->
+                        setSpan(StyleSpan(Typeface.BOLD), start, end, Spannable.SPAN_INCLUSIVE_INCLUSIVE)
+                    }
             }
         })
     }
@@ -270,7 +257,9 @@ class MainActivity : AppCompatActivity(), LifecycleOwner {
     }
 
     private fun importData() {
-        startActivityForResult(informationProvider.createImportIntent(this), importCode)
+        startActivityForResult(informationProvider.createImportIntent(this),
+            importCode
+        )
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, intent: Intent?) {

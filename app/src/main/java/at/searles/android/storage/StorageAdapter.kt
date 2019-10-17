@@ -1,4 +1,4 @@
-package at.searles.storage
+package at.searles.android.storage
 
 import android.content.Context
 import android.text.SpannableString
@@ -11,9 +11,12 @@ import androidx.recyclerview.selection.SelectionTracker
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import at.searles.storage.data.InformationProvider
+import at.searles.android.storage.data.InformationProvider
+import at.searles.storage.R
 
-class StorageAdapter(private val context: Context, private val informationProvider: InformationProvider) : ListAdapter<SpannableString, StorageAdapter.EntryViewHolder>(DiffCallback) {
+class StorageAdapter(private val context: Context, private val informationProvider: InformationProvider) : ListAdapter<SpannableString, StorageAdapter.EntryViewHolder>(
+    DiffCallback
+) {
 
     private lateinit var selectionTracker: SelectionTracker<String>
     var listener: ((View, Int) -> Unit)? = null

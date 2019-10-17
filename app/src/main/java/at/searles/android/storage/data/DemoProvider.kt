@@ -1,4 +1,4 @@
-package at.searles.storage.data
+package at.searles.android.storage.data
 
 import android.content.Context
 import android.content.Intent
@@ -10,7 +10,7 @@ import com.bumptech.glide.Glide
 import java.io.*
 import java.lang.IllegalArgumentException
 
-class Data: ViewModel(), InformationProvider.Mutable,
+class DemoProvider: ViewModel(), InformationProvider.Mutable,
     DataProvider<Any> {
     private val items = ArrayList<String>(100).also {
         (1..1000).forEach { i -> it.add("abc$i") }

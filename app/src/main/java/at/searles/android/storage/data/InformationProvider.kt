@@ -1,4 +1,4 @@
-package at.searles.storage.data
+package at.searles.android.storage.data
 
 import android.content.Context
 import android.content.Intent

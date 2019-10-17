@@ -1,10 +1,11 @@
-package at.searles.storage
+package at.searles.android.storage
 
 import android.os.Bundle
 import androidx.fragment.app.DialogFragment
 import android.app.Dialog
 import android.widget.EditText
 import androidx.appcompat.app.AlertDialog
+import at.searles.storage.R
 import java.lang.IllegalArgumentException
 
 class RenameDialogFragment: DialogFragment() {
@@ -39,7 +40,7 @@ class RenameDialogFragment: DialogFragment() {
         val oldName = arguments!!.getString(oldNameKey)?:throw IllegalArgumentException()
         val newName = renameEditText.text.toString()
 
-        (activity as MainActivity).rename(oldName, newName)
+        (activity as DemoActivity).rename(oldName, newName)
     }
 
     companion object {
