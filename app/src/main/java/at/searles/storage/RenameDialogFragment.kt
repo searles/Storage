@@ -9,8 +9,6 @@ import java.lang.IllegalArgumentException
 
 class RenameDialogFragment: DialogFragment() {
 
-    // FIXME rename multiple. If more than one element, use * as joker.
-
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         val oldNameKey = arguments!!.getString(oldNameKey)!!
 
@@ -41,7 +39,6 @@ class RenameDialogFragment: DialogFragment() {
         val oldName = arguments!!.getString(oldNameKey)?:throw IllegalArgumentException()
         val newName = renameEditText.text.toString()
 
-        // FIXME maybe livedata is better?
         (activity as MainActivity).rename(oldName, newName)
     }
 

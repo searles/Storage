@@ -143,7 +143,7 @@ class MainActivity : AppCompatActivity(), LifecycleOwner {
 
     fun confirm(name: String) {
         // TODO: make this one abstract
-        Toast.makeText(this, "Hello $name", Toast.LENGTH_SHORT).show()
+        Toast.makeText(this, "Selected $name", Toast.LENGTH_SHORT).show()
     }
 
     private val actionModeCallback = object : ActionMode.Callback {

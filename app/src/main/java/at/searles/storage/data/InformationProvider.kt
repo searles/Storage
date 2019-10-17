@@ -11,8 +11,8 @@ interface InformationProvider {
     fun setImageInView(name: String, imageView: ImageView)
 
     interface Mutable: InformationProvider {
-        fun delete(name: String) // FIXME return boolean
-        fun rename(oldName: String, newName: String) // FIXME return boolean
+        fun delete(name: String)
+        fun rename(oldName: String, newName: String)
 
         /**
          * Import items. The intent holds information on which items.
