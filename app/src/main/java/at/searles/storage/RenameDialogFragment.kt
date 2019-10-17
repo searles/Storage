@@ -9,21 +9,27 @@ import java.lang.IllegalArgumentException
 
 class RenameDialogFragment: DialogFragment() {
 
+    // FIXME rename multiple. If more than one element, use * as joker.
+
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
+        val oldNameKey = arguments!!.getString(oldNameKey)!!
+
         val builder = AlertDialog.Builder(activity!!)
 
         builder
             .setView(R.layout.rename_dialog)
+            .setTitle(R.string.rename)
             .setPositiveButton(android.R.string.ok) { _, _ -> run { rename(); dismiss() } }
+            .setNegativeButton(android.R.string.cancel) { _, _ -> dismiss() }
             .setCancelable(true)
 
         val dialog = builder.show()
 
         val renameEditText = dialog.findViewById<EditText>(R.id.renameEditText)!!
-        renameEditText.setText(arguments!!.getString(oldNameKey)!!)
+        renameEditText.setText(oldNameKey)
         renameEditText.selectAll()
 
-        // TODO validate input and check for errors
+        renameEditText.requestFocus()
 
         return dialog
     }
@@ -35,6 +41,7 @@ class RenameDialogFragment: DialogFragment() {
         val oldName = arguments!!.getString(oldNameKey)?:throw IllegalArgumentException()
         val newName = renameEditText.text.toString()
 
+        // FIXME maybe livedata is better?
         (activity as MainActivity).rename(oldName, newName)
     }
 

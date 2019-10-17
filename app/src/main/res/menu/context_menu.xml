@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <item android:title="@android:string/selectAll" android:id="@+id/select_all"/>
+    <item android:title="@android:string/selectAll" app:showAsAction="ifRoom" android:id="@+id/select_all"/>
     <item android:title="@string/importLabel" android:id="@+id/import_items"/>
-    <item android:title="@string/delete" android:icon="@android:drawable/ic_menu_delete" android:id="@+id/delete_items"/>
+    <item android:title="@string/share" app:showAsAction="ifRoom" android:icon="@android:drawable/ic_menu_share" android:id="@+id/share_items"/>
+    <item android:title="@string/delete" app:showAsAction="ifRoom" android:icon="@android:drawable/ic_menu_delete" android:id="@+id/delete_items"/>
     <item android:title="@string/rename" android:id="@+id/rename_items"/>
-    <item android:title="@string/export" android:id="@+id/export_items"/>
 </menu>

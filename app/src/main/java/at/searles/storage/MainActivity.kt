@@ -1,5 +1,6 @@
 package at.searles.storage
 
+import android.content.Intent
 import android.graphics.Typeface
 import android.os.Bundle
 import android.text.Editable
@@ -20,12 +21,14 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.DividerItemDecoration
+import at.searles.storage.data.Data
+import at.searles.storage.data.InformationProvider
 import at.searles.stringsort.NaturalPatternMatcher
 import java.util.*
 
 class MainActivity : AppCompatActivity(), LifecycleOwner {
 
-    private lateinit var namesProvider: NamesProvider
+    private lateinit var informationProvider: InformationProvider.Mutable
     private lateinit var active: List<String>
     private lateinit var activePositions: Map<String, Int>
 
@@ -41,10 +44,10 @@ class MainActivity : AppCompatActivity(), LifecycleOwner {
         setContentView(R.layout.activity_main)
 
         // set up data
-        this.namesProvider = getNamesProvider()
+        this.informationProvider = initInformationProvider()
 
         // set up data structures for viewing items
-        adapter = StorageAdapter(this, getInformationProvider())
+        adapter = StorageAdapter(this, initInformationProvider())
 
         adapter.listener = { _, position -> confirm(active[position]) }
 
@@ -104,7 +107,7 @@ class MainActivity : AppCompatActivity(), LifecycleOwner {
                 true
             }
             R.id.import_items -> {
-                // TODO
+                importData()
                 true
             }
             else -> super.onOptionsItemSelected(item)
@@ -129,16 +132,7 @@ class MainActivity : AppCompatActivity(), LifecycleOwner {
         }
     }
 
-    fun getNamesProvider(): NamesProvider {
-        // TODO make this one abstract
-        return ViewModelProvider(this,
-            object: ViewModelProvider.Factory {
-                override fun <T : ViewModel> create(modelClass: Class<T>): T = modelClass.newInstance()
-            }
-        )[Data::class.java]
-    }
-
-    fun getInformationProvider(): InformationProvider {
+    fun initInformationProvider(): InformationProvider.Mutable {
         // TODO make this one abstract
         return ViewModelProvider(this,
             object: ViewModelProvider.Factory {
@@ -185,11 +179,11 @@ class MainActivity : AppCompatActivity(), LifecycleOwner {
                     true
                 }
                 R.id.import_items -> {
-                    // TODO
+                    importData()
                     true
                 }
-                R.id.export_items -> {
-                    // TODO
+                R.id.share_items -> {
+                    shareSelection()
                     true
                 }
                 else -> false
@@ -212,7 +206,7 @@ class MainActivity : AppCompatActivity(), LifecycleOwner {
             }
 
             val selectedCount = selectionTracker.selection.size()
-            val count = namesProvider.size()
+            val count = initInformationProvider().size()
 
             selectionActionMode!!.title = "$selectedCount ($count) selected"
 
@@ -227,14 +221,14 @@ class MainActivity : AppCompatActivity(), LifecycleOwner {
     }
 
     private fun deleteSelected() {
-        selectionTracker.selection.forEach { namesProvider.delete(it) }
+        selectionTracker.selection.forEach { informationProvider.delete(it) }
         selectionTracker.clearSelection()
         updateActiveKeys()
     }
 
     fun rename(oldName: String, newName: String) {
         selectionTracker.deselect(oldName)
-        namesProvider.rename(oldName, newName)
+        informationProvider.rename(oldName, newName)
         updateActiveKeys()
         selectionTracker.select(newName)
     }
@@ -250,9 +244,9 @@ class MainActivity : AppCompatActivity(), LifecycleOwner {
         val pattern = filterEditText.text.toString()
 
         this.active = if(pattern.isEmpty()) {
-            ArrayList(namesProvider.getNames())
+            ArrayList(informationProvider.getNames())
         } else {
-            namesProvider.getNames().filter { NaturalPatternMatcher.match(it, pattern) }
+            informationProvider.getNames().filter { NaturalPatternMatcher.match(it, pattern) }
         }
 
         this.activePositions = HashMap<String, Int>(active.size).apply {
@@ -269,6 +263,26 @@ class MainActivity : AppCompatActivity(), LifecycleOwner {
             }
         })
     }
+
+    private fun shareSelection() {
+        val intent = informationProvider.share(this, selectionTracker.selection)
+        startActivity(Intent.createChooser(intent, getString(R.string.share)))
+    }
+
+    private fun importData() {
+        startActivityForResult(informationProvider.createImportIntent(this), importCode)
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, intent: Intent?) {
+        super.onActivityResult(requestCode, resultCode, intent)
+
+        if (intent != null && requestCode == importCode) {
+            val importedNames = informationProvider.import(this, intent)
+            updateActiveKeys()
+            importedNames.forEach { selectionTracker.select(it) }
+        }
+    }
+
 
     private inner class FilterWatcher : TextWatcher {
         override fun afterTextChanged(s: Editable) {
@@ -321,5 +335,9 @@ class MainActivity : AppCompatActivity(), LifecycleOwner {
 
             return entryDetails
         }
+    }
+
+    companion object {
+        const val importCode = 463
     }
 }

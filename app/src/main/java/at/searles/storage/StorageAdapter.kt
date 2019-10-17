@@ -11,6 +11,7 @@ import androidx.recyclerview.selection.SelectionTracker
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import at.searles.storage.data.InformationProvider
 
 class StorageAdapter(private val context: Context, private val informationProvider: InformationProvider) : ListAdapter<SpannableString, StorageAdapter.EntryViewHolder>(DiffCallback) {
 
