@@ -1,0 +1,9 @@
+<resources>
+    <string name="importLabel">Import</string>
+    <string name="remove">Remove</string>
+    <string name="rename">Rename</string>
+    <string name="export">Export</string>
+    <string name="delete">Delete</string>
+    <string name="new_name">New name</string>
+    <string name="share">Share</string>
+</resources>

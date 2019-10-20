@@ -1,9 +1,9 @@
-package at.searles.android.storage
+package at.searles.android.storage.demo
 
 import android.widget.Toast
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import at.searles.android.storage.data.DemoProvider
+import at.searles.android.storage.StorageActivity
 import at.searles.android.storage.data.InformationProvider
 
 class DemoActivity : StorageActivity() {

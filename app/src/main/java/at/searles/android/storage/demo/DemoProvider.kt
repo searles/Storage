@@ -1,10 +1,12 @@
-package at.searles.android.storage.data
+package at.searles.android.storage.demo
 
 import android.content.Context
 import android.content.Intent
 import android.widget.ImageView
 import androidx.core.content.FileProvider
 import androidx.lifecycle.ViewModel
+import at.searles.android.storage.data.DataProvider
+import at.searles.android.storage.data.InformationProvider
 import at.searles.storage.R
 import com.bumptech.glide.Glide
 import java.io.*

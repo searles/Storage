@@ -19,7 +19,6 @@ import android.view.MenuInflater
 import androidx.lifecycle.LifecycleOwner
 import androidx.recyclerview.widget.DividerItemDecoration
 import at.searles.android.storage.data.InformationProvider
-import at.searles.storage.R
 import at.searles.stringsort.NaturalPatternMatcher
 import java.util.*
 
