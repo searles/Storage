@@ -12,8 +12,7 @@ import com.bumptech.glide.Glide
 import java.io.*
 import java.lang.IllegalArgumentException
 
-class DemoProvider: ViewModel(), InformationProvider.Mutable,
-    DataProvider<Any> {
+class DemoProvider: ViewModel(), InformationProvider, DataProvider<Any> {
     private val items = ArrayList<String>(100).also {
         (1..1000).forEach { i -> it.add("abc$i") }
     }

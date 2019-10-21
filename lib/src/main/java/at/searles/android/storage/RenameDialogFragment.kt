@@ -32,7 +32,6 @@ class RenameDialogFragment: DialogFragment() {
         return dialog
     }
 
-
     private fun rename() {
         val renameEditText = dialog!!.findViewById<EditText>(R.id.renameEditText)
 

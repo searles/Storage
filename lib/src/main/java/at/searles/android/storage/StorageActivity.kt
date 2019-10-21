@@ -1,5 +1,6 @@
 package at.searles.android.storage
 
+import android.app.Activity
 import android.content.Intent
 import android.graphics.Typeface
 import android.os.Bundle
@@ -17,14 +18,17 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import android.view.MenuInflater
 import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.DividerItemDecoration
 import at.searles.android.storage.data.InformationProvider
 import at.searles.stringsort.NaturalPatternMatcher
 import java.util.*
 
-abstract class StorageActivity : AppCompatActivity(), LifecycleOwner {
+open class StorageActivity : AppCompatActivity(), LifecycleOwner {
 
-    private lateinit var informationProvider: InformationProvider.Mutable
+    private lateinit var informationProvider: InformationProvider
+
     private lateinit var active: List<String>
     private lateinit var activePositions: Map<String, Int>
 
@@ -40,10 +44,10 @@ abstract class StorageActivity : AppCompatActivity(), LifecycleOwner {
         setContentView(R.layout.activity_main)
 
         // set up data
-        this.informationProvider = initInformationProvider()
+        this.informationProvider = getInformationProvider()
 
         // set up data structures for viewing items
-        adapter = StorageAdapter(this, initInformationProvider())
+        adapter = StorageAdapter(this, informationProvider)
 
         adapter.listener = { _, position -> confirm(active[position]) }
 
@@ -128,9 +132,32 @@ abstract class StorageActivity : AppCompatActivity(), LifecycleOwner {
         }
     }
 
-    abstract fun initInformationProvider(): InformationProvider.Mutable
+    /**
+     * Override this method to change the default behavior
+     */
+    protected fun confirm(name: String) {
+        Intent().also {
+            it.putExtra(nameKey, name)
+            setResult(Activity.RESULT_OK, it)
+        }
 
-    abstract fun confirm(name: String)
+        finish()
+    }
+
+    /**
+     * Override this to modify the information provider
+     */
+    protected fun getInformationProvider(): InformationProvider {
+        val clazzName = intent.getStringExtra(providerClassNameKey)!!
+
+        val clazz = Class.forName(clazzName) as Class<ViewModel>
+
+        return ViewModelProvider(this,
+            object: ViewModelProvider.Factory {
+                override fun <T : ViewModel> create(modelClass: Class<T>): T = modelClass.newInstance()
+            }
+        )[clazz] as InformationProvider
+    }
 
     private val actionModeCallback = object : ActionMode.Callback {
         // Called when the action mode is created; startActionMode() was called
@@ -192,7 +219,7 @@ abstract class StorageActivity : AppCompatActivity(), LifecycleOwner {
             }
 
             val selectedCount = selectionTracker.selection.size()
-            val count = initInformationProvider().size()
+            val count = getInformationProvider().size()
 
             selectionActionMode!!.title = "$selectedCount ($count) selected"
 
@@ -327,5 +354,7 @@ abstract class StorageActivity : AppCompatActivity(), LifecycleOwner {
 
     companion object {
         const val importCode = 463
+        const val nameKey = "name"
+        const val providerClassNameKey = "providerClassName"
     }
 }

@@ -1,2 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-          package="at.searles.android.storage"/>
+          package="at.searles.android.storage">
+    <application>
+        <activity android:name=".StorageActivity"/>
+    </application>
+</manifest>

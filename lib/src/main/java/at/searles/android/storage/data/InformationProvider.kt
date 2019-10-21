@@ -10,20 +10,18 @@ interface InformationProvider {
     fun getDescription(name: String): String
     fun setImageInView(name: String, imageView: ImageView)
 
-    interface Mutable: InformationProvider {
-        fun delete(name: String)
-        fun rename(oldName: String, newName: String)
+    fun delete(name: String)
+    fun rename(oldName: String, newName: String)
 
-        /**
-         * Import items. The intent holds information on which items.
-         */
-        fun import(context: Context, intent: Intent): Iterable<String>
+    /**
+     * Import items. The intent holds information on which items.
+     */
+    fun import(context: Context, intent: Intent): Iterable<String>
 
-        /**
-         * Export items. Internally, write a temporary file and return its Uri.
-         */
-        fun share(context: Context, names: Iterable<String>): Intent
+    /**
+     * Export items. Internally, write a temporary file and return its Uri.
+     */
+    fun share(context: Context, names: Iterable<String>): Intent
 
-        fun createImportIntent(context: Context): Intent
-    }
+    fun createImportIntent(context: Context): Intent
 }
