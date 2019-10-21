@@ -41,7 +41,7 @@ open class StorageActivity : AppCompatActivity(), LifecycleOwner {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+        setContentView(R.layout.storage_activity_main)
 
         // set up data
         this.informationProvider = getInformationProvider()
@@ -96,7 +96,7 @@ open class StorageActivity : AppCompatActivity(), LifecycleOwner {
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         val inflater = menuInflater
-        inflater.inflate(R.menu.main_menu, menu)
+        inflater.inflate(R.menu.storage_main_menu, menu)
         return true
     }
 
@@ -164,7 +164,7 @@ open class StorageActivity : AppCompatActivity(), LifecycleOwner {
         override fun onCreateActionMode(mode: ActionMode, menu: Menu): Boolean {
             // Inflate a menu resource providing context menu items
             val inflater: MenuInflater = mode.menuInflater
-            inflater.inflate(R.menu.context_menu, menu)
+            inflater.inflate(R.menu.storage_context_menu, menu)
             return true
         }
 

@@ -21,7 +21,7 @@ class StorageAdapter(private val context: Context, private val informationProvid
     var listener: ((View, Int) -> Unit)? = null
 
     override fun onCreateViewHolder(viewGroup: ViewGroup, viewType: Int): EntryViewHolder {
-        val view = LayoutInflater.from(context).inflate(R.layout.view_item, viewGroup, false)
+        val view = LayoutInflater.from(context).inflate(R.layout.storage_view_item, viewGroup, false)
         val viewHolder = EntryViewHolder(view)
         view.setOnClickListener(viewHolder)
         return viewHolder
