@@ -1,10 +1,12 @@
-package at.searles.android.storage
+package at.searles.android.storage.dialog
 
 import android.os.Bundle
 import android.app.Dialog
 import android.widget.EditText
 import androidx.fragment.app.DialogFragment
 import androidx.appcompat.app.AlertDialog
+import at.searles.android.storage.R
+import at.searles.android.storage.StorageActivity
 import java.lang.IllegalArgumentException
 
 class RenameDialogFragment: DialogFragment() {

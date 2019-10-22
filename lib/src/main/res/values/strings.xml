@@ -6,4 +6,6 @@
     <string name="delete">Delete</string>
     <string name="new_name">New name</string>
     <string name="share">Share</string>
+    <string name="renameFail">Could not rename to \"%s\"</string>
+    <string name="entryExists">\"%s\" already exists</string>
 </resources>

@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">Storage</string>
+    <string name="entryExists">Entry already exists: %s</string>
 </resources>

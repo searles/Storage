@@ -10,18 +10,37 @@ interface InformationProvider {
     fun getDescription(name: String): String
     fun setImageInView(name: String, imageView: ImageView)
 
+    fun exists(name: String): Boolean
+
     fun delete(name: String)
-    fun rename(oldName: String, newName: String)
+
+    /**
+     * rename entry from oldName to newName.
+     * @return false if newName exists or another non-critical error occurs (eg name is invalid)
+     */
+    fun rename(oldName: String, newName: String): Boolean
 
     /**
      * Import items. The intent holds information on which items.
+     * @return If allowOverride is true, then existing entries will be replaced, otherwise,
+     * existing entries are not imported.
      */
-    fun import(context: Context, intent: Intent): Iterable<String>
+    fun import(context: Context, intent: Intent, allowOverride: Boolean): Iterable<String>
 
     /**
      * Export items. Internally, write a temporary file and return its Uri.
      */
     fun share(context: Context, names: Iterable<String>): Intent
 
+    /**
+     * Create intent for exporting/sharing
+     */
     fun createImportIntent(context: Context): Intent
+
+    /**
+     * Closely related to the import method, this method returns all new
+     * names that will be imported when using this.
+     * @return names
+     */
+    fun getNamesFromImportIntent(context: Context, intent: Intent): Iterable<String>
 }

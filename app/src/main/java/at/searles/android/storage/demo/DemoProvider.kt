@@ -36,13 +36,22 @@ class DemoProvider: ViewModel(), InformationProvider, DataProvider<Any> {
             .into(imageView)
     }
 
+    override fun exists(name: String): Boolean {
+        return items.contains(name)
+    }
+
     override fun delete(name: String) {
         items.remove(name)
     }
 
-    override fun rename(oldName: String, newName: String) {
+    override fun rename(oldName: String, newName: String): Boolean {
+        if(items.contains(newName)) {
+            return false
+        }
+
         items.remove(oldName)
         items.add(newName)
+        return true
     }
 
     override fun createImportIntent(context: Context): Intent {
@@ -53,15 +62,22 @@ class DemoProvider: ViewModel(), InformationProvider, DataProvider<Any> {
         }
     }
 
-    override fun import(context: Context, intent: Intent): Iterable<String> {
+    override fun import(context: Context, intent: Intent, allowOverride: Boolean): Iterable<String> {
         try {
             val uri = intent.data!!
             val content = context.contentResolver.openInputStream(uri)!!.bufferedReader().readText()
 
-            return content.split("\n").filter { save(context, it, 1) }
+            return content.split("\n").filter { save(context, it, 1, allowOverride) }
         } catch (e: IOException) {
             throw IllegalArgumentException(e) // FIXME another exception that is caught by the caller would be better.
         }
+    }
+
+    override fun getNamesFromImportIntent(context: Context, intent: Intent): Iterable<String> {
+        val uri = intent.data!!
+        val content = context.contentResolver.openInputStream(uri)!!.bufferedReader().readText()
+
+        return content.split("\n")
     }
 
     override fun share(context: Context, names: Iterable<String>): Intent {
@@ -79,16 +95,22 @@ class DemoProvider: ViewModel(), InformationProvider, DataProvider<Any> {
         val contentUri = FileProvider.getUriForFile(context,
             FILE_PROVIDER, textFile)
 
-        val sendIntent = Intent().apply {
+        return Intent().apply {
             action = Intent.ACTION_SEND
             putExtra(Intent.EXTRA_STREAM, contentUri)
             type = "text/plain"
         }
-
-        return sendIntent
     }
 
-    override fun save(context: Context, name: String, value: Any): Boolean {
+    override fun exists(context: Context, name: String): Boolean {
+        return items.contains(name)
+    }
+
+    override fun save(context: Context, name: String, value: Any, allowOverride: Boolean): Boolean {
+        if(items.contains(name)) {
+            return allowOverride
+        }
+
         items.add(name)
         return true
     }

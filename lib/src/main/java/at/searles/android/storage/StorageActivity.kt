@@ -17,11 +17,13 @@ import androidx.recyclerview.selection.SelectionPredicates.createSelectAnything
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import android.view.MenuInflater
+import android.widget.Toast
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.DividerItemDecoration
 import at.searles.android.storage.data.InformationProvider
+import at.searles.android.storage.dialog.RenameDialogFragment
 import at.searles.stringsort.NaturalPatternMatcher
 import java.util.*
 
@@ -138,7 +140,7 @@ open class StorageActivity : AppCompatActivity(), LifecycleOwner {
     protected fun confirm(name: String) {
         Intent().also {
             it.putExtra(nameKey, name)
-            setResult(Activity.RESULT_OK, it)
+            setResult(openEntry, it)
         }
 
         finish()
@@ -241,9 +243,12 @@ open class StorageActivity : AppCompatActivity(), LifecycleOwner {
 
     fun rename(oldName: String, newName: String) {
         selectionTracker.deselect(oldName)
-        informationProvider.rename(oldName, newName)
-        updateActiveKeys()
-        selectionTracker.select(newName)
+        if(informationProvider.rename(oldName, newName)) {
+            updateActiveKeys()
+            selectionTracker.select(newName)
+        } else {
+            Toast.makeText(this, resources.getString(R.string.renameFail, newName), Toast.LENGTH_LONG).show()
+        }
     }
 
     /**
@@ -283,7 +288,8 @@ open class StorageActivity : AppCompatActivity(), LifecycleOwner {
     }
 
     private fun importData() {
-        startActivityForResult(informationProvider.createImportIntent(this),
+        startActivityForResult(
+            informationProvider.createImportIntent(this),
             importCode
         )
     }
@@ -292,7 +298,7 @@ open class StorageActivity : AppCompatActivity(), LifecycleOwner {
         super.onActivityResult(requestCode, resultCode, intent)
 
         if (intent != null && requestCode == importCode) {
-            val importedNames = informationProvider.import(this, intent)
+            val importedNames = informationProvider.import(this, intent, false)
             updateActiveKeys()
             importedNames.forEach { selectionTracker.select(it) }
         }
@@ -356,5 +362,6 @@ open class StorageActivity : AppCompatActivity(), LifecycleOwner {
         const val importCode = 463
         const val nameKey = "name"
         const val providerClassNameKey = "providerClassName"
+        const val openEntry = 252
     }
 }
