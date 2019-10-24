@@ -4,7 +4,7 @@ import android.app.Dialog
 import androidx.fragment.app.DialogFragment
 import androidx.appcompat.app.AlertDialog
 import android.os.Bundle
-import at.searles.android.storage.StorageDialogCallback
+import at.searles.android.storage.R
 
 /**
  * Parent activity must implement the can-save-
@@ -15,17 +15,17 @@ class DiscardAndOpenDialogFragment : DialogFragment() {
         val name = arguments?.getString(nameKey)!!
 
         return AlertDialog.Builder(activity!!)
-                .setTitle("Modifications will be lost")
-                .setMessage("Do you want open \"%s\" and discard changes?")
+                .setTitle(R.string.unsafedChanges)
+                .setMessage(context!!.resources.getString(R.string.discardChangesQuestion, name))
                 .setNegativeButton(android.R.string.no) { _, _ -> }
                 .setPositiveButton(android.R.string.yes) { _, _ ->
-                    (activity as StorageDialogCallback).discardAndOpen(name)
+                    (activity as Callback).discardAndOpen(name)
                 }
                 .create()
     }
 
     companion object {
-        val nameKey = "name"
+        const val nameKey = "name"
 
         fun create(name: String): DiscardAndOpenDialogFragment {
             return DiscardAndOpenDialogFragment().also {
@@ -34,5 +34,9 @@ class DiscardAndOpenDialogFragment : DialogFragment() {
                 it.arguments = args
             }
         }
+    }
+
+    interface Callback {
+        fun discardAndOpen(name: String)
     }
 }

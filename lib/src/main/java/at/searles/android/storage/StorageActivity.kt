@@ -1,6 +1,5 @@
 package at.searles.android.storage
 
-import android.app.Activity
 import android.content.Intent
 import android.graphics.Typeface
 import android.os.Bundle
@@ -27,7 +26,7 @@ import at.searles.android.storage.dialog.RenameDialogFragment
 import at.searles.stringsort.NaturalPatternMatcher
 import java.util.*
 
-open class StorageActivity : AppCompatActivity(), LifecycleOwner {
+open class StorageActivity : AppCompatActivity(), LifecycleOwner, RenameDialogFragment.Callback {
 
     private lateinit var informationProvider: InformationProvider
 
@@ -146,6 +145,18 @@ open class StorageActivity : AppCompatActivity(), LifecycleOwner {
         finish()
     }
 
+    override fun onActivityResult(requestCode: Int, resultCode: Int, intent: Intent?) {
+        super.onActivityResult(requestCode, resultCode, intent)
+
+        if (intent != null && requestCode == importCode) {
+            val importedBySuccess = informationProvider.import(this, intent)
+            updateActiveKeys()
+            importedBySuccess.forEach { (name, status) -> if(status) selectionTracker.select(name) }
+            val failCount = importedBySuccess.count { (_, status) -> !status }
+            Toast.makeText(this, resources.getString(R.string.importPartlyFailed, failCount, importedBySuccess.size), Toast.LENGTH_LONG).show()
+        }
+    }
+
     /**
      * Override this to modify the information provider
      */
@@ -154,11 +165,11 @@ open class StorageActivity : AppCompatActivity(), LifecycleOwner {
 
         val clazz = Class.forName(clazzName) as Class<ViewModel>
 
-        return ViewModelProvider(this,
+        return (ViewModelProvider(this,
             object: ViewModelProvider.Factory {
                 override fun <T : ViewModel> create(modelClass: Class<T>): T = modelClass.newInstance()
             }
-        )[clazz] as InformationProvider
+        )[clazz] as InformationProvider).also { it.setContext(this) }
     }
 
     private val actionModeCallback = object : ActionMode.Callback {
@@ -236,19 +247,57 @@ open class StorageActivity : AppCompatActivity(), LifecycleOwner {
     }
 
     private fun deleteSelected() {
-        selectionTracker.selection.forEach { informationProvider.delete(it) }
-        selectionTracker.clearSelection()
+        val selection = ArrayList<String>(selectionTracker.selection.size()).apply {
+            selectionTracker.selection.forEach { this.add(it) }
+        }
+
+        for(selected in selection) {
+            selectionTracker.deselect(selected)
+
+            try {
+                if(!informationProvider.delete(selected)) {
+                    notification(resources.getString(R.string.deleteFail, selected))
+                    return
+                }
+            } catch(th: Throwable) {
+                errorNotification(th)
+                selectionTracker.select(selected)
+                updateActiveKeys()
+                return
+            }
+        }
+
         updateActiveKeys()
     }
 
-    fun rename(oldName: String, newName: String) {
+    override fun rename(oldName: String, newName: String) {
         selectionTracker.deselect(oldName)
-        if(informationProvider.rename(oldName, newName)) {
+
+        val status: Boolean
+
+        try {
+            status = informationProvider.rename(oldName, newName)
+        } catch(th: Throwable) {
+            selectionTracker.select(oldName)
+            errorNotification(th)
+            return
+        }
+
+        if(status) {
             updateActiveKeys()
             selectionTracker.select(newName)
         } else {
+            selectionTracker.select(oldName)
             Toast.makeText(this, resources.getString(R.string.renameFail, newName), Toast.LENGTH_LONG).show()
         }
+    }
+
+    private fun notification(msg: String) {
+        Toast.makeText(this, msg, Toast.LENGTH_LONG).show()
+    }
+
+    private fun errorNotification(th: Throwable) {
+        Toast.makeText(this, resources.getString(R.string.error, th.localizedMessage), Toast.LENGTH_LONG).show()
     }
 
     /**
@@ -294,15 +343,6 @@ open class StorageActivity : AppCompatActivity(), LifecycleOwner {
         )
     }
 
-    override fun onActivityResult(requestCode: Int, resultCode: Int, intent: Intent?) {
-        super.onActivityResult(requestCode, resultCode, intent)
-
-        if (intent != null && requestCode == importCode) {
-            val importedNames = informationProvider.import(this, intent, false)
-            updateActiveKeys()
-            importedNames.forEach { selectionTracker.select(it) }
-        }
-    }
 
 
     private inner class FilterWatcher : TextWatcher {

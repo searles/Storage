@@ -12,21 +12,30 @@ import com.bumptech.glide.Glide
 import java.io.*
 import java.lang.IllegalArgumentException
 
-class DemoProvider: ViewModel(), InformationProvider, DataProvider<Any> {
-    private val items = ArrayList<String>(100).also {
-        (1..1000).forEach { i -> it.add("abc$i") }
+class FilesProvider: ViewModel(), InformationProvider, DataProvider<String> {
+
+    private lateinit var directory: File
+    private lateinit var files: Map<String, File>
+    private lateinit var names: List<String>
+
+    override fun setContext(context: Context) {
+        directory = context.getDir(directoryName, 0)
+        updateLists()
     }
 
-    override fun setContext(context: Context) {}
+    fun updateLists() {
+        files = directory.listFiles()!!.map{it.name to it}.toMap()
+        names = files.keys.toSortedSet().toList() // FIXME natural sort
+    }
 
-    override fun size(): Int = items.size
+    override fun size(): Int = files.size
 
     override fun getNames(): List<String> {
-        return items
+        return names
     }
 
     override fun getDescription(name: String): String {
-        return "subtitle $name"
+        return files[name]?.canonicalPath ?: ""
     }
 
     override fun setImageInView(name: String, imageView: ImageView) {
@@ -39,20 +48,28 @@ class DemoProvider: ViewModel(), InformationProvider, DataProvider<Any> {
     }
 
     override fun exists(name: String): Boolean {
-        return items.contains(name)
+        return File(directory, name).exists()
     }
 
     override fun delete(name: String): Boolean {
-        return items.remove(name)
-    }
-
-    override fun rename(oldName: String, newName: String): Boolean {
-        if(items.contains(newName)) {
+        if(!File(directory, name).delete()) {
             return false
         }
 
-        items.remove(oldName)
-        items.add(newName)
+        updateLists()
+        return true
+    }
+
+    override fun rename(oldName: String, newName: String): Boolean {
+        if(exists(newName)) {
+            return false
+        }
+
+        if(!File(directory, oldName).renameTo(File(directory, newName))) {
+            return false
+        }
+
+        updateLists()
         return true
     }
 
@@ -67,15 +84,18 @@ class DemoProvider: ViewModel(), InformationProvider, DataProvider<Any> {
     override fun import(context: Context, intent: Intent): Map<String, Boolean> {
         try {
             val uri = intent.data!!
+
+            // TODO zip
             val content = context.contentResolver.openInputStream(uri)!!.bufferedReader().readText()
 
-            return content.split("\n").map {it to save(it, {1}, false) }.toMap()
+            return content.split("\n").map {it to save( it, {"Hello"}, false) }.toMap()
         } catch (e: IOException) {
             throw IllegalArgumentException(e) // FIXME another exception that is caught by the caller would be better.
         }
     }
 
     override fun share(context: Context, names: Iterable<String>): Intent {
+        // TODO
         val textFile = File.createTempFile(
             "data_${System.currentTimeMillis()}",
             ".txt",
@@ -97,20 +117,22 @@ class DemoProvider: ViewModel(), InformationProvider, DataProvider<Any> {
         }
     }
 
-    override fun save(name: String, value: () -> Any, allowOverride: Boolean): Boolean {
-        if(items.contains(name)) {
-            return allowOverride
+    override fun save(name: String, value: () -> String, allowOverride: Boolean): Boolean {
+        if(!allowOverride && exists(name)) {
+            return false
         }
 
-        items.add(name)
+        File(directory, name).writeText(value.invoke())
+
         return true
     }
 
-    override fun load(name: String, contentHolder: (Any) -> Unit) {
-        contentHolder.invoke(Any())
+    override fun load(name: String, contentHolder: (String) -> Unit) {
+        contentHolder.invoke(File(directory, name).readText())
     }
 
     companion object {
         const val FILE_PROVIDER = "at.searles.storage.fileprovider"
+        const val directoryName = "demo"
     }
 }

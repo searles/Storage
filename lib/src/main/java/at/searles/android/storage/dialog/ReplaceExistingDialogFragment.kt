@@ -5,7 +5,6 @@ import androidx.fragment.app.DialogFragment
 import androidx.appcompat.app.AlertDialog
 import android.os.Bundle
 import at.searles.android.storage.R
-import at.searles.android.storage.StorageDialogCallback
 
 /**
  * Parent activity must implement the can-save-
@@ -17,10 +16,10 @@ class ReplaceExistingDialogFragment : DialogFragment() {
 
         return AlertDialog.Builder(activity!!)
                 .setTitle(getString(R.string.entryExists, name))
-                .setMessage("Do you want to replace the existing entry?") // FIXME
+                .setMessage(R.string.replaceExistingEntryQuestion) // FIXME
                 .setNegativeButton(android.R.string.no) { _, _ -> }
                 .setPositiveButton(android.R.string.yes) { _, _ ->
-                    (activity as StorageDialogCallback).overrideAndSaveAs(name)
+                    (activity as Callback).replaceExistingAndSave(name)
                 }
                 .create()
     }
@@ -35,5 +34,9 @@ class ReplaceExistingDialogFragment : DialogFragment() {
                 it.arguments = args
             }
         }
+    }
+
+    interface Callback {
+        fun replaceExistingAndSave(name: String)
     }
 }

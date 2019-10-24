@@ -52,4 +52,8 @@ class RenameDialogFragment: DialogFragment() {
             return dialogFragment
         }
     }
+
+    interface Callback {
+        fun rename(oldName: String, newName: String)
+    }
 }

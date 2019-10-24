@@ -11,14 +11,20 @@
     <EditText
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:inputType="textPersonName"
-            android:text="Name"
+            android:inputType="text"
+            android:text=""
+            android:hint="Filename"
             android:ems="10"
             android:id="@+id/nameEditText"/>
-    <Button
-            android:text="Toggle Modification"
+    <EditText
             android:layout_width="match_parent"
-            android:layout_height="wrap_content" android:id="@+id/modifyButton" android:onClick="toggleModification"/>
+            android:layout_height="0dp"
+            android:inputType="textMultiLine"
+            android:gravity="start|top"
+            android:text="This is the content"
+            android:hint="Content"
+            android:ems="10"
+            android:id="@+id/contentEditText" android:layout_weight="1"/>
     <Button
             android:text="Save"
             android:layout_width="match_parent"

@@ -12,23 +12,25 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import at.searles.android.storage.StorageActivity
-import at.searles.android.storage.StorageDialogCallback
-import at.searles.android.storage.data.InformationProvider
 import at.searles.android.storage.dialog.DiscardAndOpenDialogFragment
-import at.searles.android.storage.dialog.RenameDialogFragment
 import at.searles.android.storage.dialog.ReplaceExistingDialogFragment
 import at.searles.storage.R
 
-class DemoActivity : AppCompatActivity(), StorageDialogCallback {
-
-    private var currentName: String? = null // if null, there is no current key
+class DemoActivity : AppCompatActivity(), ReplaceExistingDialogFragment.Callback, DiscardAndOpenDialogFragment.Callback {
+    private lateinit var provider: FilesProvider
+    private var currentName: String? = null
     private var isModified = false
 
-    private lateinit var provider: DemoProvider
+    private lateinit var nameEditText: EditText
+    private lateinit var contentEditText: EditText
+    private lateinit var saveButton: Button
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.demo)
+
+        // FIXME maybe rather use LiveData
+        provider = getDemoProvider().apply { updateLists() }
 
         // init current key
         if(savedInstanceState != null) {
@@ -36,119 +38,126 @@ class DemoActivity : AppCompatActivity(), StorageDialogCallback {
             isModified = savedInstanceState.getBoolean(isModifiedKey)
         }
 
-        provider = getDemoProvider()
+        nameEditText = findViewById(R.id.nameEditText)
+        contentEditText = findViewById(R.id.contentEditText)
+        saveButton = findViewById(R.id.saveButton)
 
-        findViewById<EditText>(R.id.nameEditText).addTextChangedListener(object: TextWatcher {
+        nameEditText.addTextChangedListener(object: TextWatcher {
             override fun afterTextChanged(s: Editable?) {
-                setSaveEnabled(currentName != s.toString())
+                updateSaveButtonEnabled()
             }
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
         })
 
-        setSaveEnabled(isModified)
+        contentEditText.addTextChangedListener(object: TextWatcher {
+            override fun afterTextChanged(s: Editable?) {
+                isModified = true
+                updateSaveButtonEnabled()
+            }
+
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+        })
+
+        updateSaveButtonEnabled()
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
-
         outState.putString(currentNameKey, currentName)
         outState.putBoolean(isModifiedKey, isModified)
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         if(resultCode == StorageActivity.openEntry) {
-            val newName = data!!.getStringExtra(StorageActivity.nameKey)!!
-
-            if(isModified) {
-                // ask whether to discard changes.
-                DiscardAndOpenDialogFragment.create(newName)
-                    .show(supportFragmentManager, "dialog")
+            val name = data!!.getStringExtra(StorageActivity.nameKey)!!
+            if(!isModified) {
+                discardAndOpen(name)
             } else {
-                currentName = newName
-                findViewById<EditText>(R.id.nameEditText).setText(newName)
-                isModified = false
-                setSaveEnabled(false)
+                DiscardAndOpenDialogFragment.create(name).also {
+                    supportFragmentManager.beginTransaction().add(it, "dialog").commitAllowingStateLoss()
+                }
             }
         } else {
             super.onActivityResult(requestCode, resultCode, data)
         }
     }
 
+    override fun discardAndOpen(name: String) {
+        // this is also called if nothing has to be discarded.
+        try {
+            provider.load(name) { content = it }
+        } catch(th: Throwable) {
+            Toast.makeText(this, resources.getString(at.searles.android.storage.R.string.error, th.localizedMessage), Toast.LENGTH_LONG).show()
+            return
+        }
+
+        nameEditText.setText(name)
+        isModified = false
+        currentName = name
+        updateSaveButtonEnabled()
+    }
+
     fun onOpenClick(view: View) {
         startStorageActivity()
     }
 
-    fun onSaveClick(view: View) {
-        // todo currentName
-        val name = findViewById<EditText>(R.id.nameEditText).text.toString()
-
-        if(provider.exists(name)) {
-            if(name != currentName) {
-                ReplaceExistingDialogFragment.create(name)
-                    .show(supportFragmentManager, "dialog")
-            } else {
-                if(!provider.save(this, name, Any(), true)) {
-                    Toast.makeText(this, "Could not save \"%s\"", Toast.LENGTH_LONG).show()
-                } else {
-                    currentName = name
-                    setSaveEnabled(false)
-                }
-            }
-        } else {
-            if(!provider.save(this, name, Any(), false)) {
-                Toast.makeText(this, "Could not save \"%s\"", Toast.LENGTH_LONG).show()
-            } else {
-                currentName = name
-                isModified = false
-                setSaveEnabled(false)
-            }
-        }
-    }
-
-    override fun overrideAndSaveAs(name: String) {
-        if(!provider.save(this, name, Any(), true)) {
-            Toast.makeText(this, "Could not save \"%s\"", Toast.LENGTH_LONG).show()
+    override fun replaceExistingAndSave(name: String) {
+        try {
+            provider.save(name, { content }, true)
+        } catch(th: Throwable) {
+            Toast.makeText(this, resources.getString(at.searles.android.storage.R.string.error, th.localizedMessage), Toast.LENGTH_LONG).show()
             return
         }
 
-        currentName = name
-        findViewById<EditText>(R.id.nameEditText).setText(name)
         isModified = false
-        setSaveEnabled(false)
+        this.currentName = name
+        updateSaveButtonEnabled()
     }
 
-    override fun discardAndOpen(name: String) {
-        provider.load(this, name)
+    fun onSaveClick(view: View) {
+        val name = nameEditText.text.toString()
+        val status: Boolean
 
-        currentName = name
-        findViewById<EditText>(R.id.nameEditText).setText(name)
-        isModified = false
-        setSaveEnabled(false)
+        try {
+            status = provider.save(name, {content}, name == currentName)
+        } catch (th: Throwable) {
+            Toast.makeText(this, resources.getString(at.searles.android.storage.R.string.error, th.localizedMessage), Toast.LENGTH_LONG).show()
+            return
+        }
+
+        if(status) {
+            isModified = false
+            currentName = name
+            updateSaveButtonEnabled()
+        } else {
+            ReplaceExistingDialogFragment.create(name)
+                .show(supportFragmentManager, "dialog")
+        }
     }
 
-    fun getDemoProvider(): DemoProvider {
+    var content: String
+        get() = contentEditText.text.toString()
+        set(value) { contentEditText.setText(value)}
+
+    private fun getDemoProvider(): FilesProvider {
         return ViewModelProvider(this,
             object: ViewModelProvider.Factory {
                 override fun <T : ViewModel> create(modelClass: Class<T>): T = modelClass.newInstance()
             }
-        )[DemoProvider::class.java]
+        )[FilesProvider::class.java].also { it.setContext(this) }
     }
 
-    fun toggleModification(view: View) {
-        if(!isModified) {
-            isModified = true
-            setSaveEnabled(true)
-        }
-    }
-
-    private fun setSaveEnabled(state: Boolean) {
-        findViewById<Button>(R.id.saveButton)!!.isEnabled = state
+    private fun updateSaveButtonEnabled() {
+        val isEnabled = isModified || currentName != nameEditText.text.toString()
+        saveButton.isEnabled = isEnabled
     }
 
     private fun startStorageActivity() {
         Intent(this, StorageActivity::class.java).also {
-            it.putExtra(StorageActivity.providerClassNameKey, DemoProvider::class.java.canonicalName)
+            it.putExtra(StorageActivity.providerClassNameKey, provider.javaClass.canonicalName)
             startActivityForResult(it, storageActivityRequestCode)
         }
     }
