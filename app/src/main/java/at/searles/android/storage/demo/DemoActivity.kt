@@ -29,8 +29,7 @@ class DemoActivity : AppCompatActivity(), ReplaceExistingDialogFragment.Callback
         super.onCreate(savedInstanceState)
         setContentView(R.layout.demo)
 
-        // FIXME maybe rather use LiveData
-        provider = getDemoProvider().apply { updateLists() }
+        provider = getDemoProvider()
 
         // init current key
         if(savedInstanceState != null) {

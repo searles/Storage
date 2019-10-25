@@ -5,12 +5,15 @@ import android.content.Intent
 import android.widget.ImageView
 import androidx.core.content.FileProvider
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import at.searles.android.storage.data.DataProvider
 import at.searles.android.storage.data.InformationProvider
 import at.searles.storage.R
 import com.bumptech.glide.Glide
 import java.io.*
-import java.lang.IllegalArgumentException
+import java.util.zip.ZipEntry
+import java.util.zip.ZipInputStream
+import java.util.zip.ZipOutputStream
 
 class FilesProvider: ViewModel(), InformationProvider, DataProvider<String> {
 
@@ -23,16 +26,16 @@ class FilesProvider: ViewModel(), InformationProvider, DataProvider<String> {
         updateLists()
     }
 
-    fun updateLists() {
+    private fun updateLists() {
         files = directory.listFiles()!!.map{it.name to it}.toMap()
-        names = files.keys.toSortedSet().toList() // FIXME natural sort
+        names = files.keys.toSortedSet().toList() // Natural order!
     }
-
-    override fun size(): Int = files.size
 
     override fun getNames(): List<String> {
         return names
     }
+
+    override fun size(): Int = files.size
 
     override fun getDescription(name: String): String {
         return files[name]?.canonicalPath ?: ""
@@ -77,43 +80,55 @@ class FilesProvider: ViewModel(), InformationProvider, DataProvider<String> {
         return Intent().apply {
             action = Intent.ACTION_OPEN_DOCUMENT
             addCategory(Intent.CATEGORY_OPENABLE)
-            type = "text/plain"
+            type = mimeType
         }
     }
 
     override fun import(context: Context, intent: Intent): Map<String, Boolean> {
-        try {
-            val uri = intent.data!!
+        val uri = intent.data?:return emptyMap()
 
-            // TODO zip
-            val content = context.contentResolver.openInputStream(uri)!!.bufferedReader().readText()
+        val statusMap = HashMap<String, Boolean>()
 
-            return content.split("\n").map {it to save( it, {"Hello"}, false) }.toMap()
-        } catch (e: IOException) {
-            throw IllegalArgumentException(e) // FIXME another exception that is caught by the caller would be better.
+        val inStream = context.contentResolver.openInputStream(uri)!!
+
+        ZipInputStream(inStream).use { zipIn ->
+            var entry: ZipEntry
+            while(zipIn.nextEntry.also{ entry = it} != null) {
+                if(!entry.isDirectory && !exists(entry.name)) {
+                    FileOutputStream(File(directory, entry.name)).use { fileOut ->
+                        zipIn.copyTo(fileOut)
+                    }
+                    statusMap[entry.name] = true
+                } else {
+                    statusMap[entry.name] = false
+                }
+            }
         }
+        return statusMap
     }
 
     override fun share(context: Context, names: Iterable<String>): Intent {
-        // TODO
-        val textFile = File.createTempFile(
+        val outFile = File.createTempFile(
             "data_${System.currentTimeMillis()}",
-            ".txt",
+            ".zip",
             context.externalCacheDir
         )
 
-        val content = names.joinToString("\n")
-
-        textFile.writeText(content)
-
-        // Share text file
-        val contentUri = FileProvider.getUriForFile(context,
-            FILE_PROVIDER, textFile)
+        ZipOutputStream(FileOutputStream(outFile)).use { zipOut ->
+            for(name in names) {
+                zipOut.putNextEntry(ZipEntry(name))
+                FileInputStream(File(directory, name)).use {
+                    it.copyTo(zipOut)
+                }
+                zipOut.closeEntry()
+            }
+        }
+        val contentUri = FileProvider.getUriForFile(context, FILE_PROVIDER, outFile)
 
         return Intent().apply {
             action = Intent.ACTION_SEND
             putExtra(Intent.EXTRA_STREAM, contentUri)
-            type = "text/plain"
+            type = mimeType
         }
     }
 
@@ -131,8 +146,19 @@ class FilesProvider: ViewModel(), InformationProvider, DataProvider<String> {
         contentHolder.invoke(File(directory, name).readText())
     }
 
+    class Factory: ViewModelProvider.Factory {
+        override fun <T : ViewModel?> create(modelClass: Class<T>): T {
+            require(modelClass == FilesProvider::class.java) { "bad class" }
+
+            @Suppress("UNCHECKED_CAST")
+            return FilesProvider() as T
+        }
+    }
+
     companion object {
         const val FILE_PROVIDER = "at.searles.storage.fileprovider"
         const val directoryName = "demo"
+        const val mimeType = "application/zip"
     }
+
 }

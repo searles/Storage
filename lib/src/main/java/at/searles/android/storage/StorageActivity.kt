@@ -163,13 +163,16 @@ open class StorageActivity : AppCompatActivity(), LifecycleOwner, RenameDialogFr
     protected fun getInformationProvider(): InformationProvider {
         val clazzName = intent.getStringExtra(providerClassNameKey)!!
 
+        @Suppress("UNCHECKED_CAST")
         val clazz = Class.forName(clazzName) as Class<ViewModel>
 
         return (ViewModelProvider(this,
             object: ViewModelProvider.Factory {
                 override fun <T : ViewModel> create(modelClass: Class<T>): T = modelClass.newInstance()
             }
-        )[clazz] as InformationProvider).also { it.setContext(this) }
+        )[clazz] as InformationProvider).also {
+            it.setContext(this)
+        }
     }
 
     private val actionModeCallback = object : ActionMode.Callback {
@@ -309,11 +312,12 @@ open class StorageActivity : AppCompatActivity(), LifecycleOwner, RenameDialogFr
 
     private fun updateActiveKeys() {
         val pattern = filterEditText.text.toString()
+        val names = informationProvider.getNames()
 
         this.active = if(pattern.isEmpty()) {
-            ArrayList(informationProvider.getNames())
+            ArrayList(names)
         } else {
-            informationProvider.getNames().filter { NaturalPatternMatcher.match(it, pattern) }
+            names.filter { NaturalPatternMatcher.match(it, pattern) }
         }
 
         this.activePositions = HashMap<String, Int>(active.size).apply {

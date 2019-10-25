@@ -35,5 +35,8 @@ interface InformationProvider {
      */
     fun createImportIntent(context: Context): Intent
 
+    /**
+     * DEPRECATED! Find another way.
+     */
     fun setContext(context: Context)
 }
