@@ -70,17 +70,17 @@ class DemoActivity : AppCompatActivity(), ReplaceExistingDialogFragment.Callback
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+
         if(resultCode == StorageActivity.openEntry) {
             val name = data!!.getStringExtra(StorageActivity.nameKey)!!
             if(!isModified) {
                 discardAndOpen(name)
             } else {
                 DiscardAndOpenDialogFragment.create(name).also {
-                    supportFragmentManager.beginTransaction().add(it, "dialog").commitAllowingStateLoss()
+                    supportFragmentManager.beginTransaction().add(it, "dialog").commit()
                 }
             }
-        } else {
-            super.onActivityResult(requestCode, resultCode, data)
         }
     }
 

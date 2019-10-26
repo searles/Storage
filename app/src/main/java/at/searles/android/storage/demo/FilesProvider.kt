@@ -2,10 +2,10 @@ package at.searles.android.storage.demo
 
 import android.content.Context
 import android.content.Intent
+import android.util.Log
 import android.widget.ImageView
 import androidx.core.content.FileProvider
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import at.searles.android.storage.data.DataProvider
 import at.searles.android.storage.data.InformationProvider
 import at.searles.storage.R
@@ -54,13 +54,12 @@ class FilesProvider: ViewModel(), InformationProvider, DataProvider<String> {
         return File(directory, name).exists()
     }
 
-    override fun delete(name: String): Boolean {
-        if(!File(directory, name).delete()) {
-            return false
+    override fun deleteAll(names: List<String>): Map<String, Boolean> {
+        try {
+            return names.map { it to File(directory, it).delete() }.toMap()
+        } finally {
+            updateLists()
         }
-
-        updateLists()
-        return true
     }
 
     override fun rename(oldName: String, newName: String): Boolean {
@@ -91,19 +90,28 @@ class FilesProvider: ViewModel(), InformationProvider, DataProvider<String> {
 
         val inStream = context.contentResolver.openInputStream(uri)!!
 
-        ZipInputStream(inStream).use { zipIn ->
-            var entry: ZipEntry
-            while(zipIn.nextEntry.also{ entry = it} != null) {
-                if(!entry.isDirectory && !exists(entry.name)) {
-                    FileOutputStream(File(directory, entry.name)).use { fileOut ->
-                        zipIn.copyTo(fileOut)
+        try {
+            ZipInputStream(inStream).use { zipIn ->
+                while (true) {
+                    val entry: ZipEntry = zipIn.nextEntry ?: break
+                    if (!entry.isDirectory && !exists(entry.name)) {
+                        Log.d("FilesProvider", "Reading ${entry.name} from zip")
+
+                        FileOutputStream(File(directory, entry.name)).use { fileOut ->
+                            zipIn.copyTo(fileOut)
+                        }
+                        statusMap[entry.name] = true
+                    } else {
+                        Log.d("FilesProvider", "Skipping ${entry.name}")
+                        statusMap[entry.name] = false
                     }
-                    statusMap[entry.name] = true
-                } else {
-                    statusMap[entry.name] = false
+                    zipIn.closeEntry()
                 }
             }
+        } finally {
+            updateLists()
         }
+
         return statusMap
     }
 
@@ -116,6 +124,7 @@ class FilesProvider: ViewModel(), InformationProvider, DataProvider<String> {
 
         ZipOutputStream(FileOutputStream(outFile)).use { zipOut ->
             for(name in names) {
+                Log.d("FilesProvider", "Putting $name into zip")
                 zipOut.putNextEntry(ZipEntry(name))
                 FileInputStream(File(directory, name)).use {
                     it.copyTo(zipOut)
@@ -123,6 +132,7 @@ class FilesProvider: ViewModel(), InformationProvider, DataProvider<String> {
                 zipOut.closeEntry()
             }
         }
+
         val contentUri = FileProvider.getUriForFile(context, FILE_PROVIDER, outFile)
 
         return Intent().apply {
@@ -137,22 +147,17 @@ class FilesProvider: ViewModel(), InformationProvider, DataProvider<String> {
             return false
         }
 
-        File(directory, name).writeText(value.invoke())
+        try {
+            File(directory, name).writeText(value.invoke())
+        } finally{
+            updateLists()
+        }
 
         return true
     }
 
     override fun load(name: String, contentHolder: (String) -> Unit) {
         contentHolder.invoke(File(directory, name).readText())
-    }
-
-    class Factory: ViewModelProvider.Factory {
-        override fun <T : ViewModel?> create(modelClass: Class<T>): T {
-            require(modelClass == FilesProvider::class.java) { "bad class" }
-
-            @Suppress("UNCHECKED_CAST")
-            return FilesProvider() as T
-        }
     }
 
     companion object {

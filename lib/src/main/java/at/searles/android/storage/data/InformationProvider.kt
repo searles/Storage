@@ -12,7 +12,7 @@ interface InformationProvider {
 
     fun exists(name: String): Boolean
 
-    fun delete(name: String): Boolean
+    fun deleteAll(names: List<String>): Map<String, Boolean>
 
     /**
      * rename entry from oldName to newName.

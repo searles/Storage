@@ -153,7 +153,14 @@ open class StorageActivity : AppCompatActivity(), LifecycleOwner, RenameDialogFr
             updateActiveKeys()
             importedBySuccess.forEach { (name, status) -> if(status) selectionTracker.select(name) }
             val failCount = importedBySuccess.count { (_, status) -> !status }
-            Toast.makeText(this, resources.getString(R.string.importPartlyFailed, failCount, importedBySuccess.size), Toast.LENGTH_LONG).show()
+
+            if(failCount > 0) {
+                Toast.makeText(
+                    this,
+                    resources.getString(R.string.importPartlyFailed, failCount, importedBySuccess.size),
+                    Toast.LENGTH_LONG
+                ).show()
+            }
         }
     }
 
@@ -254,20 +261,22 @@ open class StorageActivity : AppCompatActivity(), LifecycleOwner, RenameDialogFr
             selectionTracker.selection.forEach { this.add(it) }
         }
 
-        for(selected in selection) {
-            selectionTracker.deselect(selected)
+        selectionTracker.clearSelection()
 
-            try {
-                if(!informationProvider.delete(selected)) {
-                    notification(resources.getString(R.string.deleteFail, selected))
-                    return
-                }
-            } catch(th: Throwable) {
-                errorNotification(th)
-                selectionTracker.select(selected)
-                updateActiveKeys()
-                return
+        try {
+            val status = informationProvider.deleteAll(selection)
+
+            val notDeleted = status.filter { !it.value }.keys
+
+            if(notDeleted.isNotEmpty()) {
+                notification(resources.getString(R.string.deleteFail, notDeleted.count()))
             }
+
+            notDeleted.forEach {
+                selectionTracker.select(it)
+            }
+        } catch(th: Throwable) {
+            errorNotification(th)
         }
 
         updateActiveKeys()
