@@ -1,5 +1,6 @@
 package at.searles.android.storage
 
+import android.content.Context
 import android.content.Intent
 import android.graphics.Typeface
 import android.os.Bundle
@@ -172,14 +173,16 @@ open class StorageActivity : AppCompatActivity(), LifecycleOwner, RenameDialogFr
 
         @Suppress("UNCHECKED_CAST")
         val clazz = Class.forName(clazzName) as Class<ViewModel>
+        val ctor = clazz.getConstructor(Context::class.java)
 
         return (ViewModelProvider(this,
             object: ViewModelProvider.Factory {
-                override fun <T : ViewModel> create(modelClass: Class<T>): T = modelClass.newInstance()
+                override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                    @Suppress("UNCHECKED_CAST")
+                    return ctor.newInstance(this@StorageActivity) as T
+                }
             }
-        )[clazz] as InformationProvider).also {
-            it.setContext(this)
-        }
+        )[clazz] as InformationProvider)
     }
 
     private val actionModeCallback = object : ActionMode.Callback {
@@ -351,7 +354,11 @@ open class StorageActivity : AppCompatActivity(), LifecycleOwner, RenameDialogFr
 
     private fun importData() {
         startActivityForResult(
-            informationProvider.createImportIntent(this),
+            Intent().apply {
+                action = Intent.ACTION_OPEN_DOCUMENT
+                addCategory(Intent.CATEGORY_OPENABLE)
+                // FIXME needed? type = informationProvider.mimeType
+            },
             importCode
         )
     }

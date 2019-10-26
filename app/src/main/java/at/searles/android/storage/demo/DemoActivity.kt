@@ -17,7 +17,7 @@ import at.searles.android.storage.dialog.ReplaceExistingDialogFragment
 import at.searles.storage.R
 
 class DemoActivity : AppCompatActivity(), ReplaceExistingDialogFragment.Callback, DiscardAndOpenDialogFragment.Callback {
-    private lateinit var provider: FilesProvider
+    private lateinit var providerDemo: DemoFilesProvider
     private var currentName: String? = null
     private var isModified = false
 
@@ -29,7 +29,7 @@ class DemoActivity : AppCompatActivity(), ReplaceExistingDialogFragment.Callback
         super.onCreate(savedInstanceState)
         setContentView(R.layout.demo)
 
-        provider = getDemoProvider()
+        providerDemo = getDemoProvider()
 
         // init current key
         if(savedInstanceState != null) {
@@ -39,8 +39,14 @@ class DemoActivity : AppCompatActivity(), ReplaceExistingDialogFragment.Callback
 
         nameEditText = findViewById(R.id.nameEditText)
         contentEditText = findViewById(R.id.contentEditText)
-        saveButton = findViewById(R.id.saveButton)
 
+        saveButton = findViewById(R.id.saveButton)
+    }
+
+    override fun onResume() {
+        super.onResume()
+
+        // if added before, listeners fire during initialization
         nameEditText.addTextChangedListener(object: TextWatcher {
             override fun afterTextChanged(s: Editable?) {
                 updateSaveButtonEnabled()
@@ -87,7 +93,7 @@ class DemoActivity : AppCompatActivity(), ReplaceExistingDialogFragment.Callback
     override fun discardAndOpen(name: String) {
         // this is also called if nothing has to be discarded.
         try {
-            provider.load(name) { content = it }
+            providerDemo.load(name) { content = it }
         } catch(th: Throwable) {
             Toast.makeText(this, resources.getString(at.searles.android.storage.R.string.error, th.localizedMessage), Toast.LENGTH_LONG).show()
             return
@@ -99,13 +105,14 @@ class DemoActivity : AppCompatActivity(), ReplaceExistingDialogFragment.Callback
         updateSaveButtonEnabled()
     }
 
+    @Suppress("UNUSED_PARAMETER")
     fun onOpenClick(view: View) {
         startStorageActivity()
     }
 
     override fun replaceExistingAndSave(name: String) {
         try {
-            provider.save(name, { content }, true)
+            providerDemo.save(name, { content }, true)
         } catch(th: Throwable) {
             Toast.makeText(this, resources.getString(at.searles.android.storage.R.string.error, th.localizedMessage), Toast.LENGTH_LONG).show()
             return
@@ -116,12 +123,13 @@ class DemoActivity : AppCompatActivity(), ReplaceExistingDialogFragment.Callback
         updateSaveButtonEnabled()
     }
 
+    @Suppress("UNUSED_PARAMETER")
     fun onSaveClick(view: View) {
         val name = nameEditText.text.toString()
         val status: Boolean
 
         try {
-            status = provider.save(name, {content}, name == currentName)
+            status = providerDemo.save(name, {content}, name == currentName)
         } catch (th: Throwable) {
             Toast.makeText(this, resources.getString(at.searles.android.storage.R.string.error, th.localizedMessage), Toast.LENGTH_LONG).show()
             return
@@ -137,16 +145,19 @@ class DemoActivity : AppCompatActivity(), ReplaceExistingDialogFragment.Callback
         }
     }
 
-    var content: String
+    private var content: String
         get() = contentEditText.text.toString()
         set(value) { contentEditText.setText(value)}
 
-    private fun getDemoProvider(): FilesProvider {
+    private fun getDemoProvider(): DemoFilesProvider {
         return ViewModelProvider(this,
             object: ViewModelProvider.Factory {
-                override fun <T : ViewModel> create(modelClass: Class<T>): T = modelClass.newInstance()
+                override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                    @Suppress("UNCHECKED_CAST")
+                    return DemoFilesProvider(this@DemoActivity) as T
+                }
             }
-        )[FilesProvider::class.java].also { it.setContext(this) }
+        )[DemoFilesProvider::class.java]
     }
 
     private fun updateSaveButtonEnabled() {
@@ -156,7 +167,7 @@ class DemoActivity : AppCompatActivity(), ReplaceExistingDialogFragment.Callback
 
     private fun startStorageActivity() {
         Intent(this, StorageActivity::class.java).also {
-            it.putExtra(StorageActivity.providerClassNameKey, provider.javaClass.canonicalName)
+            it.putExtra(StorageActivity.providerClassNameKey, providerDemo.javaClass.canonicalName)
             startActivityForResult(it, storageActivityRequestCode)
         }
     }
