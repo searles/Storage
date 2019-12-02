@@ -125,13 +125,17 @@ abstract class FilesProvider(private val directory: File) : ViewModel(), Informa
     }
 
     override fun save(name: String, value: () -> String, allowOverride: Boolean): Boolean {
+        if(name.contains('/') || name.contains('\u0000')) {
+            throw InvalidNameException("Bad character ('/' or '\\0') in name", null)
+        }
+
         if(!allowOverride && exists(name)) {
             return false
         }
 
         try {
             File(directory, name).writeText(value.invoke())
-        } finally{
+        } finally {
             updateLists()
         }
 

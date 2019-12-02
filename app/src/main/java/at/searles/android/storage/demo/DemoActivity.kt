@@ -29,8 +29,6 @@ class DemoActivity : AppCompatActivity(), ReplaceExistingDialogFragment.Callback
         super.onCreate(savedInstanceState)
         setContentView(R.layout.demo)
 
-        providerDemo = getDemoProvider()
-
         // init current key
         if(savedInstanceState != null) {
             currentName = savedInstanceState.getString(currentNameKey)
@@ -45,6 +43,8 @@ class DemoActivity : AppCompatActivity(), ReplaceExistingDialogFragment.Callback
 
     override fun onResume() {
         super.onResume()
+
+        providerDemo = getDemoProvider()
 
         // if added before, listeners fire during initialization
         nameEditText.addTextChangedListener(object: TextWatcher {
