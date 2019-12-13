@@ -1,5 +1,6 @@
 package at.searles.android.storage.demo
 
+import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
 import android.text.Editable
@@ -78,7 +79,7 @@ class DemoActivity : AppCompatActivity(), ReplaceExistingDialogFragment.Callback
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
 
-        if(resultCode == StorageActivity.openEntry) {
+        if(resultCode == Activity.RESULT_OK) {
             val name = data!!.getStringExtra(StorageActivity.nameKey)!!
             if(!isModified) {
                 discardAndOpen(name)

@@ -1,5 +1,6 @@
 package at.searles.android.storage
 
+import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.graphics.Typeface
@@ -140,7 +141,7 @@ open class StorageActivity : AppCompatActivity(), LifecycleOwner, RenameDialogFr
     protected fun confirm(name: String) {
         Intent().also {
             it.putExtra(nameKey, name)
-            setResult(openEntry, it)
+            setResult(Activity.RESULT_OK, it)
         }
 
         finish()
@@ -422,6 +423,5 @@ open class StorageActivity : AppCompatActivity(), LifecycleOwner, RenameDialogFr
         const val importCode = 463
         const val nameKey = "name"
         const val providerClassNameKey = "providerClassName"
-        const val openEntry = 252
     }
 }
