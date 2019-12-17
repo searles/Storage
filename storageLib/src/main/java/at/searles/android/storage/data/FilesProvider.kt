@@ -145,6 +145,10 @@ abstract class FilesProvider(private val directory: File) : ViewModel(), Informa
     }
 
     override fun save(name: String, value: () -> String, allowOverride: Boolean): Boolean {
+        if(name.isEmpty()) {
+            throw InvalidNameException("Name must not be empty", null)
+        }
+
         if(name.contains('/') || name.contains('\u0000')) {
             throw InvalidNameException("Bad character ('/' or '\\0') in name", null)
         }
