@@ -1,6 +1,5 @@
 <resources>
     <string name="importLabel">Import</string>
-    <string name="remove">Remove</string>
     <string name="rename">Rename</string>
     <string name="export">Export</string>
     <string name="delete">Delete</string>
@@ -13,6 +12,7 @@
     <string name="replaceExistingEntryQuestion">Replace existing entry?</string>
     <string name="importPartlyFailed">%d (of %d) items were not imported because they already existed</string>
     <string name="error">An error occurred: %s</string>
-    <string name="deleteFail">Could not delete %d item</string>
-    <string name="save">Save</string>
+    <string name="deleteFail">Could not delete %d items</string>
+    <string name="returnWithoutSavingQuestion">Return program without saving?</string>
+    <string name="cancelWithoutSavingQuestion">Close without saving?</string>
 </resources>

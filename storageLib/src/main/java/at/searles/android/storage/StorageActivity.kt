@@ -46,6 +46,8 @@ open class StorageActivity : AppCompatActivity(), LifecycleOwner, RenameDialogFr
         super.onCreate(savedInstanceState)
         setContentView(R.layout.storage_activity_main)
 
+        title = intent.getStringExtra(titleKey)
+
         // set up data
         this.informationProvider = getInformationProvider()
 
@@ -180,10 +182,7 @@ open class StorageActivity : AppCompatActivity(), LifecycleOwner, RenameDialogFr
         }
     }
 
-    /**
-     * Override this to modify the information provider
-     */
-    protected fun getInformationProvider(): InformationProvider {
+    private fun getInformationProvider(): InformationProvider {
         val clazzName = intent.getStringExtra(providerClassNameKey)!!
 
         @Suppress("UNCHECKED_CAST")
@@ -376,7 +375,7 @@ open class StorageActivity : AppCompatActivity(), LifecycleOwner, RenameDialogFr
             Intent().apply {
                 action = Intent.ACTION_CREATE_DOCUMENT
                 addCategory(Intent.CATEGORY_OPENABLE)
-                setFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION or Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION)
+                flags = Intent.FLAG_GRANT_WRITE_URI_PERMISSION or Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION
                 type = "application/*"
             },
             exportCode
@@ -388,7 +387,7 @@ open class StorageActivity : AppCompatActivity(), LifecycleOwner, RenameDialogFr
             Intent().apply {
                 action = Intent.ACTION_OPEN_DOCUMENT
                 addCategory(Intent.CATEGORY_OPENABLE)
-                setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION)
+                flags = Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION
                 type = "application/*"
             },
             importCode
@@ -451,6 +450,7 @@ open class StorageActivity : AppCompatActivity(), LifecycleOwner, RenameDialogFr
     }
 
     companion object {
+        const val titleKey: String = "title"
         const val importCode = 463
         const val exportCode = 326
         const val nameKey = "name"

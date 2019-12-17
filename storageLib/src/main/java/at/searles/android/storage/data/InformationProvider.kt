@@ -3,8 +3,6 @@ package at.searles.android.storage.data
 import android.content.Context
 import android.content.Intent
 import android.widget.ImageView
-import androidx.recyclerview.selection.Selection
-import at.searles.android.storage.StorageActivity
 
 interface InformationProvider {
     fun size(): Int

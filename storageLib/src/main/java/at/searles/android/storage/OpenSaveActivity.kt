@@ -19,23 +19,25 @@ abstract class OpenSaveActivity : AppCompatActivity(), ReplaceExistingDialogFrag
 
     abstract val saveButton: Button
 
+    abstract val storageActivityTitle: String
+
     /**
      * This field contains the filename under which the item
      * has been saved the latest.
      */
     private var currentFileName: String? = null
-        private set
 
     var isModified = false
         private set
 
-    val mustAskForSaveOnFinish: Boolean
+    private val mustAskForSaveOnFinish: Boolean
         get() = fileNameEditor.text.isNotEmpty() && isModified
-
 
     abstract val provider: FilesProvider
 
     abstract var contentString: String
+
+    abstract fun createReturnIntent(): Intent
 
     override fun onPostCreate(savedInstanceState: Bundle?) {
         super.onPostCreate(savedInstanceState)
@@ -57,11 +59,47 @@ abstract class OpenSaveActivity : AppCompatActivity(), ReplaceExistingDialogFrag
         saveButton.setOnClickListener { onSaveButtonClicked() }
     }
 
+    override fun onPostResume() {
+        super.onPostResume()
+        updateSaveButtonEnabled()
+    }
+
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
 
         outState.putString(currentNameKey, currentFileName)
         outState.putBoolean(isModifiedKey, isModified)
+    }
+
+    override fun onBackPressed() {
+        if(mustAskForSaveOnFinish) {
+            CloseWithoutSavingDialogFragment.create().show(supportFragmentManager, "dialog")
+            return
+        }
+
+        closeWithoutSaving()
+    }
+
+    fun finishAndReturnContent() {
+        if(mustAskForSaveOnFinish) {
+            ReturnWithoutSavingDialogFragment.create().show(supportFragmentManager, "dialog")
+            return
+        }
+
+        returnWithoutSaving()
+    }
+
+    internal fun returnWithoutSaving() {
+        setResult(Activity.RESULT_OK, createReturnIntent())
+        finish()
+    }
+
+    internal fun closeWithoutSaving() {
+        Intent().also {
+            setResult(Activity.RESULT_CANCELED, it)
+        }
+
+        finish()
     }
 
     private fun onSaveButtonClicked() {
@@ -71,7 +109,7 @@ abstract class OpenSaveActivity : AppCompatActivity(), ReplaceExistingDialogFrag
         try {
             status = provider.save(name, {contentString}, name == currentFileName)
         } catch (th: Throwable) {
-            Toast.makeText(this, resources.getString(at.searles.android.storage.R.string.error, th.localizedMessage), Toast.LENGTH_LONG).show()
+            Toast.makeText(this, resources.getString(R.string.error, th.localizedMessage), Toast.LENGTH_LONG).show()
             return
         }
 
@@ -88,7 +126,7 @@ abstract class OpenSaveActivity : AppCompatActivity(), ReplaceExistingDialogFrag
         try {
             provider.load(name) { contentString = it }
         } catch(th: Throwable) {
-            Toast.makeText(this, resources.getString(at.searles.android.storage.R.string.error, th.localizedMessage), Toast.LENGTH_LONG).show()
+            Toast.makeText(this, resources.getString(R.string.error, th.localizedMessage), Toast.LENGTH_LONG).show()
             return
         }
 
@@ -99,7 +137,7 @@ abstract class OpenSaveActivity : AppCompatActivity(), ReplaceExistingDialogFrag
         try {
             provider.save(name, { contentString }, true)
         } catch(th: Throwable) {
-            Toast.makeText(this, resources.getString(at.searles.android.storage.R.string.error, th.localizedMessage), Toast.LENGTH_LONG).show()
+            Toast.makeText(this, resources.getString(R.string.error, th.localizedMessage), Toast.LENGTH_LONG).show()
             return
         }
 
@@ -132,7 +170,7 @@ abstract class OpenSaveActivity : AppCompatActivity(), ReplaceExistingDialogFrag
 
     fun startStorageActivity() {
         Intent(this, StorageActivity::class.java).also {
-            // FIXME set title
+            it.putExtra(StorageActivity.titleKey, storageActivityTitle)
             it.putExtra(StorageActivity.providerClassNameKey, provider.javaClass.canonicalName)
             startActivityForResult(it, storageActivityRequestCode)
         }
@@ -149,7 +187,6 @@ abstract class OpenSaveActivity : AppCompatActivity(), ReplaceExistingDialogFrag
     }
 
     companion object {
-        const val sourceKey = "source"
         private const val currentNameKey = "currentName"
         private const val isModifiedKey = "isModified"
         const val storageActivityRequestCode = 101

@@ -16,7 +16,7 @@ class ReplaceExistingDialogFragment : DialogFragment() {
 
         return AlertDialog.Builder(activity!!)
                 .setTitle(getString(R.string.entryExists, name))
-                .setMessage(R.string.replaceExistingEntryQuestion) // FIXME
+                .setMessage(R.string.replaceExistingEntryQuestion)
                 .setNegativeButton(android.R.string.no) { _, _ -> }
                 .setPositiveButton(android.R.string.yes) { _, _ ->
                     (activity as Callback).replaceExistingAndSave(name)
@@ -25,7 +25,7 @@ class ReplaceExistingDialogFragment : DialogFragment() {
     }
 
     companion object {
-        val nameKey = "name"
+        const val nameKey = "name"
 
         fun create(key: String): ReplaceExistingDialogFragment {
             return ReplaceExistingDialogFragment().also {
