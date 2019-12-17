@@ -13,7 +13,7 @@
     <string name="importPartlyFailed">%d (of %d) items were not imported because they already existed</string>
     <string name="error">An error occurred: %s</string>
     <string name="deleteFail">Could not delete %d items</string>
-    <string name="returnWithoutSavingQuestion">Return program without saving?</string>
+    <string name="returnWithoutSavingQuestion">Return without saving?</string>
     <string name="cancelWithoutSavingQuestion">Close without saving?</string>
     <string name="search">Search</string>
 </resources>
