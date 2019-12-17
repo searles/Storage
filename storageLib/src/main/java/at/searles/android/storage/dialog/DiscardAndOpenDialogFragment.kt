@@ -15,7 +15,7 @@ class DiscardAndOpenDialogFragment : DialogFragment() {
         val name = arguments?.getString(nameKey)!!
 
         return AlertDialog.Builder(activity!!)
-                .setTitle(R.string.unsafedChanges)
+                .setTitle(R.string.unsavedChanges)
                 .setMessage(context!!.resources.getString(R.string.discardChangesQuestion, name))
                 .setNegativeButton(android.R.string.no) { _, _ -> }
                 .setPositiveButton(android.R.string.yes) { _, _ ->

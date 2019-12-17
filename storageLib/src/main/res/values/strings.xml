@@ -8,7 +8,7 @@
     <string name="share">Share</string>
     <string name="renameFail">Could not rename to \"%s\"</string>
     <string name="discardChangesQuestion">Discard changes and open \"%s\"?</string>
-    <string name="unsafedChanges">There are unsafed changes</string>
+    <string name="unsavedChanges">There are unsaved changes</string>
     <string name="entryExists">\"%s\" already exists</string>
     <string name="replaceExistingEntryQuestion">Replace existing entry?</string>
     <string name="importPartlyFailed">%d (of %d) items were not imported because they already existed</string>
