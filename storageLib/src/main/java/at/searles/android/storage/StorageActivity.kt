@@ -5,19 +5,18 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.Typeface
 import android.os.Bundle
-import android.text.Editable
+import android.os.PersistableBundle
 import android.text.Spannable
 import android.text.SpannableString
-import android.text.TextWatcher
 import android.text.style.StyleSpan
 import android.view.*
-import android.widget.EditText
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.selection.*
 import androidx.recyclerview.selection.SelectionPredicates.createSelectAnything
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import android.view.MenuInflater
+import android.widget.SearchView
 import android.widget.Toast
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ViewModel
@@ -35,12 +34,12 @@ open class StorageActivity : AppCompatActivity(), LifecycleOwner, RenameDialogFr
     private lateinit var active: List<String>
     private lateinit var activePositions: Map<String, Int>
 
-    private lateinit var filterEditText: EditText
-
     private lateinit var selectionTracker: SelectionTracker<String>
     private lateinit var adapter: StorageAdapter
 
     private var selectionActionMode: ActionMode? = null
+
+    private var filterPattern = ""
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -59,13 +58,6 @@ open class StorageActivity : AppCompatActivity(), LifecycleOwner, RenameDialogFr
                 confirm(active[position])
             }
         }
-
-        // set up views
-        filterEditText = findViewById(R.id.filterEditText)
-        filterEditText.addTextChangedListener(FilterWatcher())
-
-        // if there is a filter text still present, apply it.
-        updateActiveKeys()
 
         // and now for the recycler view
         val recyclerView = findViewById<RecyclerView>(R.id.contentRecyclerView).apply {
@@ -101,11 +93,41 @@ open class StorageActivity : AppCompatActivity(), LifecycleOwner, RenameDialogFr
                 super.onSelectionRestored()
             }
         })
+
+        // Finally fetch filter pattern. This must happen before the menu is created.
+        if(savedInstanceState != null) {
+            filterPattern = savedInstanceState.getString(filterPatternKey, "")
+            updateActiveKeys()
+        }
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         val inflater = menuInflater
         inflater.inflate(R.menu.storage_main_menu, menu)
+
+        val searchItem = menu.findItem(R.id.searchAction)
+        val searchView = searchItem.actionView as SearchView
+        searchView.setOnQueryTextListener(object: SearchView.OnQueryTextListener {
+           override fun onQueryTextSubmit(query: String): Boolean {
+               filterPattern = query
+                searchView.clearFocus()
+                return true
+           }
+
+           override fun onQueryTextChange(newPattern: String): Boolean {
+               filterPattern = newPattern
+               updateActiveKeys()
+               return false
+           }
+       })
+
+        if(filterPattern != "") {
+            searchView.setQuery(filterPattern, false)
+            searchView.isFocusable = false
+            searchView.isIconified = false
+            searchView.clearFocus()
+        }
+
         return true
     }
 
@@ -129,6 +151,7 @@ open class StorageActivity : AppCompatActivity(), LifecycleOwner, RenameDialogFr
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
+        outState.putString(filterPatternKey, filterPattern)
         selectionTracker.onSaveInstanceState(outState)
         super.onSaveInstanceState(outState)
     }
@@ -341,7 +364,7 @@ open class StorageActivity : AppCompatActivity(), LifecycleOwner, RenameDialogFr
     }
 
     private fun updateActiveKeys() {
-        val pattern = filterEditText.text.toString()
+        val pattern = filterPattern
         val names = informationProvider.getNames()
 
         this.active = if(pattern.isEmpty()) {
@@ -394,18 +417,6 @@ open class StorageActivity : AppCompatActivity(), LifecycleOwner, RenameDialogFr
         )
     }
 
-
-
-    private inner class FilterWatcher : TextWatcher {
-        override fun afterTextChanged(s: Editable) {
-            updateActiveKeys()
-        }
-
-        override fun beforeTextChanged(s: CharSequence, start: Int, count: Int, after: Int) {}
-
-        override fun onTextChanged(s: CharSequence, start: Int, before: Int, count: Int) {}
-    }
-
     private inner class EntryKeyProvider : ItemKeyProvider<String>(SCOPE_CACHED) {
         override fun getKey(position: Int): String {
             return active[position]
@@ -454,6 +465,7 @@ open class StorageActivity : AppCompatActivity(), LifecycleOwner, RenameDialogFr
         const val importCode = 463
         const val exportCode = 326
         const val nameKey = "name"
+        const val filterPatternKey = "filterPatternKey"
         const val providerClassNameKey = "providerClassName"
     }
 }

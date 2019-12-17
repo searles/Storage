@@ -4,10 +4,6 @@
               android:layout_width="match_parent"
               android:layout_height="match_parent">
 
-    <Button
-            android:text="Open"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content" android:id="@+id/openButton" android:onClick="onOpenClick"/>
     <EditText
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -16,6 +12,11 @@
             android:hint="Filename"
             android:ems="10"
             android:id="@+id/nameEditText"/>
+    <Button
+            android:text="Save"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/saveButton"/>
     <EditText
             android:layout_width="match_parent"
             android:layout_height="0dp"
@@ -25,9 +26,5 @@
             android:hint="Content"
             android:ems="10"
             android:id="@+id/contentEditText" android:layout_weight="1"/>
-    <Button
-            android:text="Save"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:id="@+id/saveButton"/>
+
 </LinearLayout>

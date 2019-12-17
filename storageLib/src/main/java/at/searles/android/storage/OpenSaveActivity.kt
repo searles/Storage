@@ -15,8 +15,8 @@ import at.searles.android.storage.dialog.DiscardAndOpenDialogFragment
 import at.searles.android.storage.dialog.ReplaceExistingDialogFragment
 
 abstract class OpenSaveActivity : AppCompatActivity(), ReplaceExistingDialogFragment.Callback, DiscardAndOpenDialogFragment.Callback {
+    // TODO as collapsable action view this would be great...
     abstract val fileNameEditor: EditText
-
     abstract val saveButton: Button
 
     abstract val storageActivityTitle: String
@@ -31,7 +31,7 @@ abstract class OpenSaveActivity : AppCompatActivity(), ReplaceExistingDialogFrag
         private set
 
     private val mustAskForSaveOnFinish: Boolean
-        get() = fileNameEditor.text.isNotEmpty() && isModified
+        get() = fileNameEditor.text.isNotEmpty() && (isModified || currentFileName != fileNameEditor.text.toString())
 
     abstract val provider: FilesProvider
 
@@ -80,6 +80,7 @@ abstract class OpenSaveActivity : AppCompatActivity(), ReplaceExistingDialogFrag
         closeWithoutSaving()
     }
 
+    @Suppress("unused")
     fun finishAndReturnContent() {
         if(mustAskForSaveOnFinish) {
             ReturnWithoutSavingDialogFragment.create().show(supportFragmentManager, "dialog")

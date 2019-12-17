@@ -4,6 +4,8 @@ import android.content.Intent
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
+import android.view.Menu
+import android.view.MenuItem
 import android.view.View
 import android.widget.Button
 import android.widget.EditText
@@ -63,9 +65,20 @@ class DemoActivity : OpenSaveActivity(), ReplaceExistingDialogFragment.Callback,
         })
     }
 
-    @Suppress("UNUSED_PARAMETER")
-    fun onOpenClick(view: View) {
-        startStorageActivity()
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+        val inflater = menuInflater
+        inflater.inflate(R.menu.demo_main_menu, menu)
+        return true
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return when(item.itemId) {
+            R.id.open -> {
+                startStorageActivity()
+                true
+            }
+            else -> super.onOptionsItemSelected(item)
+        }
     }
 
     private fun getDemoProvider(): DemoFilesProvider {
