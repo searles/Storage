@@ -12,7 +12,6 @@ class DemoFilesProvider(context: Context) : FilesProvider(context.getDir(directo
             .with(imageView.context)
             .load(R.drawable.ic_launcher_foreground)
             .centerCrop()
-            // TODO .placeholder(R.drawable.loading_spinner)
             .into(imageView)
     }
 
