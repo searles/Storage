@@ -52,7 +52,11 @@ open class StorageActivity : AppCompatActivity(), LifecycleOwner, RenameDialogFr
         // set up data structures for viewing items
         adapter = StorageAdapter(this, informationProvider)
 
-        adapter.listener = { _, position -> confirm(active[position]) }
+        adapter.listener = object: StorageAdapter.Listener {
+            override fun itemClickedAt(view: View, position: Int) {
+                confirm(active[position])
+            }
+        }
 
         // set up views
         filterEditText = findViewById(R.id.filterEditText)
@@ -105,12 +109,12 @@ open class StorageActivity : AppCompatActivity(), LifecycleOwner, RenameDialogFr
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when(item.itemId) {
-            R.id.select_all -> {
+            R.id.selectAll -> {
                 selectAll()
                 true
             }
-            R.id.import_items -> {
-                importData()
+            R.id.importItems -> {
+                importItems()
                 true
             }
             else -> super.onOptionsItemSelected(item)
@@ -150,6 +154,10 @@ open class StorageActivity : AppCompatActivity(), LifecycleOwner, RenameDialogFr
     override fun onActivityResult(requestCode: Int, resultCode: Int, intent: Intent?) {
         super.onActivityResult(requestCode, resultCode, intent)
 
+        if(resultCode != Activity.RESULT_OK) {
+            return
+        }
+
         if (intent != null && requestCode == importCode) {
             val importedBySuccess = informationProvider.import(this, intent)
             updateActiveKeys()
@@ -163,6 +171,12 @@ open class StorageActivity : AppCompatActivity(), LifecycleOwner, RenameDialogFr
                     Toast.LENGTH_LONG
                 ).show()
             }
+
+            return
+        }
+
+        if(intent != null && requestCode == exportCode) {
+            informationProvider.export(this, intent, selectionTracker.selection)
         }
     }
 
@@ -204,26 +218,30 @@ open class StorageActivity : AppCompatActivity(), LifecycleOwner, RenameDialogFr
         // Called when the user selects a contextual menu item
         override fun onActionItemClicked(mode: ActionMode, item: MenuItem): Boolean {
             return when (item.itemId) {
-                R.id.select_all -> {
+                R.id.selectAll -> {
                     selectAll()
                     true
                 }
-                R.id.delete_items -> {
+                R.id.deleteItems -> {
                     deleteSelected()
                     mode.finish()
                     true
                 }
-                R.id.rename_items -> {
+                R.id.renameItems -> {
                     RenameDialogFragment.create(selectionTracker.selection.first())
                         .show(supportFragmentManager, "dialog")
                     true
                 }
-                R.id.import_items -> {
-                    importData()
+                R.id.importItems -> {
+                    importItems()
                     true
                 }
-                R.id.share_items -> {
+                R.id.shareItems -> {
                     shareSelection()
+                    true
+                }
+                R.id.exportItems -> {
+                    exportItems()
                     true
                 }
                 else -> false
@@ -250,7 +268,7 @@ open class StorageActivity : AppCompatActivity(), LifecycleOwner, RenameDialogFr
 
             selectionActionMode!!.title = "$selectedCount ($count) selected"
 
-            val renameMenu = selectionActionMode!!.menu.findItem(R.id.rename_items)
+            val renameMenu = selectionActionMode!!.menu.findItem(R.id.renameItems)
             renameMenu.isEnabled = selectedCount == 1
         } else {
             if(selectionActionMode != null) {
@@ -353,12 +371,25 @@ open class StorageActivity : AppCompatActivity(), LifecycleOwner, RenameDialogFr
         startActivity(Intent.createChooser(intent, getString(R.string.share)))
     }
 
-    private fun importData() {
+    private fun exportItems() {
+        startActivityForResult(
+            Intent().apply {
+                action = Intent.ACTION_CREATE_DOCUMENT
+                addCategory(Intent.CATEGORY_OPENABLE)
+                setFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION or Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION)
+                type = "application/*"
+            },
+            exportCode
+        )
+    }
+
+    private fun importItems() {
         startActivityForResult(
             Intent().apply {
                 action = Intent.ACTION_OPEN_DOCUMENT
                 addCategory(Intent.CATEGORY_OPENABLE)
-                // FIXME needed? type = informationProvider.mimeType
+                setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION)
+                type = "application/*"
             },
             importCode
         )
@@ -421,6 +452,7 @@ open class StorageActivity : AppCompatActivity(), LifecycleOwner, RenameDialogFr
 
     companion object {
         const val importCode = 463
+        const val exportCode = 326
         const val nameKey = "name"
         const val providerClassNameKey = "providerClassName"
     }

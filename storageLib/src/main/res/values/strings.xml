@@ -14,4 +14,5 @@
     <string name="importPartlyFailed">%d (of %d) items were not imported because they already existed</string>
     <string name="error">An error occurred: %s</string>
     <string name="deleteFail">Could not delete %d item</string>
+    <string name="save">Save</string>
 </resources>

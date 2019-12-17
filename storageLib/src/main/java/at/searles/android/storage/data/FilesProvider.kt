@@ -5,6 +5,7 @@ import android.content.Intent
 import android.util.Log
 import androidx.core.content.FileProvider
 import androidx.lifecycle.ViewModel
+import at.searles.stringsort.NaturalComparator
 import java.io.*
 import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
@@ -27,7 +28,7 @@ abstract class FilesProvider(private val directory: File) : ViewModel(), Informa
 
     private fun updateLists() {
         files = directory.listFiles()!!.map{it.name to it}.toMap()
-        names = files.keys.toSortedSet().toList() // Natural order!
+        names = files.keys.toSortedSet(NaturalComparator).toList() // Natural order!
     }
 
     override fun getNames(): List<String> {
@@ -121,6 +122,25 @@ abstract class FilesProvider(private val directory: File) : ViewModel(), Informa
             action = Intent.ACTION_SEND
             putExtra(Intent.EXTRA_STREAM, contentUri)
             type = mimeType
+        }
+    }
+
+    override fun export(context: Context, intent: Intent, names: Iterable<String>) {
+        val outFile = File.createTempFile(
+            "data_${System.currentTimeMillis()}",
+            ".zip",
+            context.externalCacheDir
+        )
+
+        ZipOutputStream(context.contentResolver.openOutputStream(intent.data!!)).use { zipOut ->
+            for(name in names) {
+                Log.d("FilesProvider", "Putting $name into zip")
+                zipOut.putNextEntry(ZipEntry(name))
+                FileInputStream(File(directory, name)).use {
+                    it.copyTo(zipOut)
+                }
+                zipOut.closeEntry()
+            }
         }
     }
 

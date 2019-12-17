@@ -3,6 +3,8 @@ package at.searles.android.storage.data
 import android.content.Context
 import android.content.Intent
 import android.widget.ImageView
+import androidx.recyclerview.selection.Selection
+import at.searles.android.storage.StorageActivity
 
 interface InformationProvider {
     fun size(): Int
@@ -29,4 +31,9 @@ interface InformationProvider {
      * Export items. Internally, write a temporary file and return its Uri.
      */
     fun share(context: Context, names: Iterable<String>): Intent
+
+    /**
+     * Open save-dialog
+     */
+    fun export(context: Context, intent: Intent, names: Iterable<String>)
 }

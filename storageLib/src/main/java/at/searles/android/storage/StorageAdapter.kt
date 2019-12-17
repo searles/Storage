@@ -18,7 +18,7 @@ class StorageAdapter(private val context: Context, private val informationProvid
 ) {
 
     private lateinit var selectionTracker: SelectionTracker<String>
-    var listener: ((View, Int) -> Unit)? = null
+    var listener: Listener? = null
 
     override fun onCreateViewHolder(viewGroup: ViewGroup, viewType: Int): EntryViewHolder {
         val view = LayoutInflater.from(context).inflate(R.layout.storage_view_item, viewGroup, false)
@@ -44,7 +44,7 @@ class StorageAdapter(private val context: Context, private val informationProvid
 
         override fun onClick(view: View) {
             if(!selectionTracker.hasSelection()) {
-                listener?.invoke(view, adapterPosition)
+                listener?.itemClickedAt(view, adapterPosition)
             }
 
             // otherwise  it is a long click in a selection.
@@ -73,6 +73,11 @@ class StorageAdapter(private val context: Context, private val informationProvid
         override fun getChangePayload(oldItem: SpannableString, newItem: SpannableString): Any? {
             return dummyChangePayload
         }
+    }
+
+    interface Listener {
+        fun itemClickedAt(view: View, position: Int)
+
     }
 
     companion object {
