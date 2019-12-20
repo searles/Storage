@@ -2,11 +2,11 @@ package at.searles.android.storage.demo
 
 import android.content.Context
 import android.widget.ImageView
-import at.searles.android.storage.data.FilesProvider
+import at.searles.android.storage.data.PathContentProvider
 import at.searles.storage.R
 import com.bumptech.glide.Glide
 
-class DemoFilesProvider(context: Context) : FilesProvider(context.getDir(directoryName, 0)) {
+class DemoPathContentProvider(context: Context) : PathContentProvider(context.getDir(directoryName, 0)) {
     override fun setImageInView(name: String, imageView: ImageView) {
         Glide
             .with(imageView.context)

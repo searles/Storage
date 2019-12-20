@@ -6,13 +6,12 @@ import android.text.Editable
 import android.text.TextWatcher
 import android.view.Menu
 import android.view.MenuItem
-import android.view.View
 import android.widget.Button
 import android.widget.EditText
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import at.searles.android.storage.OpenSaveActivity
-import at.searles.android.storage.data.FilesProvider
+import at.searles.android.storage.data.PathContentProvider
 import at.searles.android.storage.dialog.DiscardAndOpenDialogFragment
 import at.searles.android.storage.dialog.ReplaceExistingDialogFragment
 import at.searles.storage.R
@@ -34,7 +33,7 @@ class DemoActivity : OpenSaveActivity(), ReplaceExistingDialogFragment.Callback,
         findViewById<EditText>(R.id.contentEditText)
     }
 
-    override lateinit var provider: FilesProvider
+    override lateinit var provider: PathContentProvider
 
     override var contentString: String
         get() = contentEditText.text.toString()
@@ -81,14 +80,14 @@ class DemoActivity : OpenSaveActivity(), ReplaceExistingDialogFragment.Callback,
         }
     }
 
-    private fun getDemoProvider(): DemoFilesProvider {
+    private fun getDemoProvider(): DemoPathContentProvider {
         return ViewModelProvider(this,
             object: ViewModelProvider.Factory {
                 override fun <T : ViewModel> create(modelClass: Class<T>): T {
                     @Suppress("UNCHECKED_CAST")
-                    return DemoFilesProvider(this@DemoActivity) as T
+                    return DemoPathContentProvider(this@DemoActivity) as T
                 }
             }
-        )[DemoFilesProvider::class.java]
+        )[DemoPathContentProvider::class.java]
     }
 }
