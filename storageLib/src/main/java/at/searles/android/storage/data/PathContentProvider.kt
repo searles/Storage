@@ -23,7 +23,6 @@ abstract class PathContentProvider(private val path: File) : ViewModel(), Inform
     private lateinit var names: List<String>
 
     init {
-        require(path.isDirectory)
         updateLists()
     }
 

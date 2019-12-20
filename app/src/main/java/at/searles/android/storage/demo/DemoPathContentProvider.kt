@@ -16,6 +16,6 @@ class DemoPathContentProvider(context: Context) : PathContentProvider(context.ge
     }
 
     companion object {
-        private const val directoryName = "demo"
+        private const val directoryName = "demo123"
     }
 }
