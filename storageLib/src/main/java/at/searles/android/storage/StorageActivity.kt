@@ -97,8 +97,9 @@ open class StorageActivity : AppCompatActivity(), LifecycleOwner, RenameDialogFr
         // Finally fetch filter pattern. This must happen before the menu is created.
         if(savedInstanceState != null) {
             filterPattern = savedInstanceState.getString(filterPatternKey, "")
-            updateActiveKeys()
         }
+
+        updateActiveKeys()
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {

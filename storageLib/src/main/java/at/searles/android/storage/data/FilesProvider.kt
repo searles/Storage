@@ -126,12 +126,6 @@ abstract class FilesProvider(private val directory: File) : ViewModel(), Informa
     }
 
     override fun export(context: Context, intent: Intent, names: Iterable<String>) {
-        val outFile = File.createTempFile(
-            "data_${System.currentTimeMillis()}",
-            ".zip",
-            context.externalCacheDir
-        )
-
         ZipOutputStream(context.contentResolver.openOutputStream(intent.data!!)).use { zipOut ->
             for(name in names) {
                 Log.d("FilesProvider", "Putting $name into zip")
