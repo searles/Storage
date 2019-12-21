@@ -17,7 +17,8 @@
             android:textAppearance="@style/TextAppearance.AppCompat.Large"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toEndOf="@+id/iconImageView"
-            app:layout_constraintTop_toTopOf="parent" tools:ignore="HardcodedText"/>
+            app:layout_constraintTop_toTopOf="parent"
+            tools:ignore="HardcodedText"/>
 
     <TextView
             android:id="@+id/descriptionTextView"
@@ -31,7 +32,8 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toEndOf="@+id/iconImageView"
-            app:layout_constraintTop_toBottomOf="@+id/nameTextView" tools:ignore="HardcodedText"/>
+            app:layout_constraintTop_toBottomOf="@+id/nameTextView"
+            tools:ignore="HardcodedText"/>
 
     <ImageView
             android:id="@+id/iconImageView"

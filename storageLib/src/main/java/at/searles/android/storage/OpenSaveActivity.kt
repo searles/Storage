@@ -9,8 +9,7 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import at.searles.android.storage.StorageActivity
-import at.searles.android.storage.data.FilesProvider
+import at.searles.android.storage.data.PathContentProvider
 import at.searles.android.storage.dialog.DiscardAndOpenDialogFragment
 import at.searles.android.storage.dialog.ReplaceExistingDialogFragment
 
@@ -33,7 +32,7 @@ abstract class OpenSaveActivity : AppCompatActivity(), ReplaceExistingDialogFrag
     private val mustAskForSaveOnFinish: Boolean
         get() = fileNameEditor.text.isNotEmpty() && (isModified || currentFileName != fileNameEditor.text.toString())
 
-    abstract val provider: FilesProvider
+    abstract val provider: PathContentProvider
 
     abstract var contentString: String
 

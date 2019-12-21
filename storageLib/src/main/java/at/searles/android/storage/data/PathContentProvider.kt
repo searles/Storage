@@ -17,7 +17,7 @@ import java.util.zip.ZipOutputStream
  * Make sure to avoid '/' in filenames since they allow changing the
  * directory.
  */
-abstract class FilesProvider(private val directory: File) : ViewModel(), InformationProvider, DataProvider<String> {
+abstract class PathContentProvider(private val path: File) : ViewModel(), InformationProvider, DataProvider<String> {
 
     private lateinit var files: Map<String, File>
     private lateinit var names: List<String>
@@ -27,7 +27,7 @@ abstract class FilesProvider(private val directory: File) : ViewModel(), Informa
     }
 
     private fun updateLists() {
-        files = directory.listFiles()!!.map{it.name to it}.toMap()
+        files = path.listFiles()!!.map{it.name to it}.toMap()
         names = files.keys.toSortedSet(NaturalComparator).toList() // Natural order!
     }
 
@@ -42,12 +42,12 @@ abstract class FilesProvider(private val directory: File) : ViewModel(), Informa
     }
 
     override fun exists(name: String): Boolean {
-        return File(directory, name).exists()
+        return File(path, name).exists()
     }
 
     override fun deleteAll(names: List<String>): Map<String, Boolean> {
         try {
-            return names.map { it to File(directory, it).delete() }.toMap()
+            return names.map { it to File(path, it).delete() }.toMap()
         } finally {
             updateLists()
         }
@@ -58,7 +58,7 @@ abstract class FilesProvider(private val directory: File) : ViewModel(), Informa
             return false
         }
 
-        if(!File(directory, oldName).renameTo(File(directory, newName))) {
+        if(!File(path, oldName).renameTo(File(path, newName))) {
             return false
         }
 
@@ -80,7 +80,7 @@ abstract class FilesProvider(private val directory: File) : ViewModel(), Informa
                     if (!entry.isDirectory && !exists(entry.name)) {
                         Log.d("FilesProvider", "Reading ${entry.name} from zip")
 
-                        FileOutputStream(File(directory, entry.name)).use { fileOut ->
+                        FileOutputStream(File(path, entry.name)).use { fileOut ->
                             zipIn.copyTo(fileOut)
                         }
                         statusMap[entry.name] = true
@@ -109,7 +109,7 @@ abstract class FilesProvider(private val directory: File) : ViewModel(), Informa
             for(name in names) {
                 Log.d("FilesProvider", "Putting $name into zip")
                 zipOut.putNextEntry(ZipEntry(name))
-                FileInputStream(File(directory, name)).use {
+                FileInputStream(File(path, name)).use {
                     it.copyTo(zipOut)
                 }
                 zipOut.closeEntry()
@@ -130,7 +130,7 @@ abstract class FilesProvider(private val directory: File) : ViewModel(), Informa
             for(name in names) {
                 Log.d("FilesProvider", "Putting $name into zip")
                 zipOut.putNextEntry(ZipEntry(name))
-                FileInputStream(File(directory, name)).use {
+                FileInputStream(File(path, name)).use {
                     it.copyTo(zipOut)
                 }
                 zipOut.closeEntry()
@@ -152,7 +152,7 @@ abstract class FilesProvider(private val directory: File) : ViewModel(), Informa
         }
 
         try {
-            File(directory, name).writeText(value.invoke())
+            File(path, name).writeText(value.invoke())
         } finally {
             updateLists()
         }
@@ -161,7 +161,7 @@ abstract class FilesProvider(private val directory: File) : ViewModel(), Informa
     }
 
     override fun load(name: String, contentHolder: (String) -> Unit) {
-        contentHolder.invoke(File(directory, name).readText())
+        contentHolder.invoke(File(path, name).readText())
     }
 
     companion object {
