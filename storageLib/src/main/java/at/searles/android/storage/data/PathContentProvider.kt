@@ -6,10 +6,16 @@ import android.util.Log
 import androidx.core.content.FileProvider
 import androidx.lifecycle.ViewModel
 import at.searles.stringsort.NaturalComparator
-import java.io.*
+import java.io.File
+import java.io.FileInputStream
+import java.io.FileOutputStream
+import java.net.URLDecoder
+import java.net.URLEncoder
+import java.nio.charset.StandardCharsets
 import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
 import java.util.zip.ZipOutputStream
+
 
 /**
  * Override this one with the correct directory in the constructor call.
@@ -26,8 +32,12 @@ abstract class PathContentProvider(private val path: File) : ViewModel(), Inform
         updateLists()
     }
 
+    private fun toName(encodedFile: File): String {
+        return URLDecoder.decode(encodedFile.name, StandardCharsets.UTF_8.toString())
+    }
+
     private fun updateLists() {
-        files = path.listFiles()!!.map{it.name to it}.toMap()
+        files = path.listFiles()!!.map { toName(it) to it }.toMap()
         names = files.keys.toSortedSet(NaturalComparator).toList() // Natural order!
     }
 
@@ -42,12 +52,17 @@ abstract class PathContentProvider(private val path: File) : ViewModel(), Inform
     }
 
     override fun exists(name: String): Boolean {
-        return File(path, name).exists()
+        return toFile(name).exists()
+    }
+
+    private fun toFile(name: String): File {
+        val encodedName = URLEncoder.encode(name, StandardCharsets.UTF_8.toString())
+        return File(path, encodedName)
     }
 
     override fun deleteAll(names: List<String>): Map<String, Boolean> {
         try {
-            return names.map { it to File(path, it).delete() }.toMap()
+            return names.map { it to toFile(it).delete() }.toMap()
         } finally {
             updateLists()
         }
@@ -58,7 +73,7 @@ abstract class PathContentProvider(private val path: File) : ViewModel(), Inform
             return false
         }
 
-        if(!File(path, oldName).renameTo(File(path, newName))) {
+        if(!toFile(oldName).renameTo(toFile(newName))) {
             return false
         }
 
@@ -77,17 +92,24 @@ abstract class PathContentProvider(private val path: File) : ViewModel(), Inform
             ZipInputStream(inStream).use { zipIn ->
                 while (true) {
                     val entry: ZipEntry = zipIn.nextEntry ?: break
-                    if (!entry.isDirectory && !exists(entry.name)) {
-                        Log.d("FilesProvider", "Reading ${entry.name} from zip")
 
-                        FileOutputStream(File(path, entry.name)).use { fileOut ->
+                    val entryName = toName(File(path, entry.name))
+
+                    // normalize filenames.
+                    val targetFile = toFile(entryName)
+
+                    if (!entry.isDirectory && !targetFile.exists()) {
+                        Log.d("FilesProvider", "Reading $entryName to $targetFile from zip")
+
+                        FileOutputStream(targetFile).use { fileOut ->
                             zipIn.copyTo(fileOut)
                         }
-                        statusMap[entry.name] = true
+                        statusMap[entryName] = true
                     } else {
-                        Log.d("FilesProvider", "Skipping ${entry.name}")
-                        statusMap[entry.name] = false
+                        Log.d("FilesProvider", "Skipping $entryName")
+                        statusMap[entryName] = false
                     }
+
                     zipIn.closeEntry()
                 }
             }
@@ -107,9 +129,10 @@ abstract class PathContentProvider(private val path: File) : ViewModel(), Inform
 
         ZipOutputStream(FileOutputStream(outFile)).use { zipOut ->
             for(name in names) {
-                Log.d("FilesProvider", "Putting $name into zip")
-                zipOut.putNextEntry(ZipEntry(name))
-                FileInputStream(File(path, name)).use {
+                val encodedFile = toFile(name)
+                Log.d("FilesProvider", "Putting $name as $encodedFile into zip")
+                zipOut.putNextEntry(ZipEntry(encodedFile.name))
+                FileInputStream(encodedFile).use {
                     it.copyTo(zipOut)
                 }
                 zipOut.closeEntry()
@@ -128,9 +151,10 @@ abstract class PathContentProvider(private val path: File) : ViewModel(), Inform
     override fun export(context: Context, intent: Intent, names: Iterable<String>) {
         ZipOutputStream(context.contentResolver.openOutputStream(intent.data!!)).use { zipOut ->
             for(name in names) {
-                Log.d("FilesProvider", "Putting $name into zip")
-                zipOut.putNextEntry(ZipEntry(name))
-                FileInputStream(File(path, name)).use {
+                val encodedFile = toFile(name)
+                Log.d("FilesProvider", "Putting $name as $encodedFile into zip")
+                zipOut.putNextEntry(ZipEntry(encodedFile.name))
+                FileInputStream(encodedFile).use {
                     it.copyTo(zipOut)
                 }
                 zipOut.closeEntry()
@@ -143,8 +167,8 @@ abstract class PathContentProvider(private val path: File) : ViewModel(), Inform
             throw InvalidNameException("Name must not be empty", null)
         }
 
-        if(name.contains('/') || name.contains('\u0000')) {
-            throw InvalidNameException("Bad character ('/' or '\\0') in name", null)
+        if(name == "." || name == "..") {
+            throw InvalidNameException("name must not be '.'. or '..'", null)
         }
 
         if(!allowOverride && exists(name)) {
@@ -152,7 +176,7 @@ abstract class PathContentProvider(private val path: File) : ViewModel(), Inform
         }
 
         try {
-            File(path, name).writeText(value.invoke())
+            toFile(name).writeText(value.invoke())
         } finally {
             updateLists()
         }
@@ -161,7 +185,7 @@ abstract class PathContentProvider(private val path: File) : ViewModel(), Inform
     }
 
     override fun load(name: String, contentHolder: (String) -> Unit) {
-        contentHolder.invoke(File(path, name).readText())
+        contentHolder.invoke(toFile(name).readText())
     }
 
     companion object {
