@@ -8,6 +8,7 @@ import androidx.lifecycle.ViewModel
 import at.searles.stringsort.NaturalComparator
 import java.io.File
 import java.io.FileInputStream
+import java.io.FileNotFoundException
 import java.io.FileOutputStream
 import java.net.URLDecoder
 import java.net.URLEncoder
@@ -25,47 +26,38 @@ import java.util.zip.ZipOutputStream
  */
 abstract class PathContentProvider(private val path: File) : ViewModel(), InformationProvider, DataProvider<String> {
 
-    private lateinit var files: Map<String, File>
-    private lateinit var names: List<String>
-
-    init {
-        updateLists()
-    }
-
     private fun toName(encodedFile: File): String {
         return URLDecoder.decode(encodedFile.name, StandardCharsets.UTF_8.toString())
     }
 
-    private fun updateLists() {
-        files = path.listFiles()!!.map { toName(it) to it }.toMap()
-        names = files.keys.toSortedSet(NaturalComparator).toList() // Natural order!
-    }
-
     override fun getNames(): List<String> {
-        return names
+        return path.listFiles()!!.map { toName(it) }.sortedWith(NaturalComparator)
     }
 
-    override fun size(): Int = files.size
+    override fun size(): Int = path.listFiles()!!.size
 
     override fun getDescription(name: String): String {
-        return files[name]?.canonicalPath ?: ""
+        return ""
     }
 
     override fun exists(name: String): Boolean {
-        return toFile(name).exists()
+        return getExistingFile(name) != null
     }
 
-    private fun toFile(name: String): File {
+    /**
+     * This method should only be used for new files. For existing ones, use the mapping.
+     */
+    private fun getNewFileForName(name: String): File {
         val encodedName = URLEncoder.encode(name, StandardCharsets.UTF_8.toString())
         return File(path, encodedName)
     }
 
+    private fun getExistingFile(name: String): File? {
+        return path.listFiles()!!.find { toName(it) == name }
+    }
+    
     override fun deleteAll(names: List<String>): Map<String, Boolean> {
-        try {
-            return names.map { it to toFile(it).delete() }.toMap()
-        } finally {
-            updateLists()
-        }
+        return names.map { it to (getExistingFile(it)?.delete() ?: false) }.toMap()
     }
 
     override fun rename(oldName: String, newName: String): Boolean {
@@ -73,12 +65,7 @@ abstract class PathContentProvider(private val path: File) : ViewModel(), Inform
             return false
         }
 
-        if(!toFile(oldName).renameTo(toFile(newName))) {
-            return false
-        }
-
-        updateLists()
-        return true
+        return getExistingFile(oldName)?.renameTo(getNewFileForName(newName)) == true
     }
 
     override fun import(context: Context, intent: Intent): Map<String, Boolean> {
@@ -88,33 +75,29 @@ abstract class PathContentProvider(private val path: File) : ViewModel(), Inform
 
         val inStream = context.contentResolver.openInputStream(uri)!!
 
-        try {
-            ZipInputStream(inStream).use { zipIn ->
-                while (true) {
-                    val entry: ZipEntry = zipIn.nextEntry ?: break
+        ZipInputStream(inStream).use { zipIn ->
+            while (true) {
+                val entry: ZipEntry = zipIn.nextEntry ?: break
 
-                    val entryName = toName(File(path, entry.name))
+                val entryName = toName(File(path, entry.name))
 
-                    // normalize filenames.
-                    val targetFile = toFile(entryName)
+                // normalize filenames.
+                val targetFile = getNewFileForName(entryName)
 
-                    if (!entry.isDirectory && !targetFile.exists()) {
-                        Log.d("FilesProvider", "Reading $entryName to $targetFile from zip")
+                if (!entry.isDirectory && !targetFile.exists()) {
+                    Log.d("FilesProvider", "Reading $entryName to $targetFile from zip")
 
-                        FileOutputStream(targetFile).use { fileOut ->
-                            zipIn.copyTo(fileOut)
-                        }
-                        statusMap[entryName] = true
-                    } else {
-                        Log.d("FilesProvider", "Skipping $entryName")
-                        statusMap[entryName] = false
+                    FileOutputStream(targetFile).use { fileOut ->
+                        zipIn.copyTo(fileOut)
                     }
-
-                    zipIn.closeEntry()
+                    statusMap[entryName] = true
+                } else {
+                    Log.d("FilesProvider", "Skipping $entryName")
+                    statusMap[entryName] = false
                 }
+
+                zipIn.closeEntry()
             }
-        } finally {
-            updateLists()
         }
 
         return statusMap
@@ -129,7 +112,13 @@ abstract class PathContentProvider(private val path: File) : ViewModel(), Inform
 
         ZipOutputStream(FileOutputStream(outFile)).use { zipOut ->
             for(name in names) {
-                val encodedFile = toFile(name)
+                val encodedFile = getExistingFile(name)
+
+                if(encodedFile == null) {
+                    Log.e("PathContentProvider", "$encodedFile does not exist!")
+                    continue
+                }
+
                 Log.d("FilesProvider", "Putting $name as $encodedFile into zip")
                 zipOut.putNextEntry(ZipEntry(encodedFile.name))
                 FileInputStream(encodedFile).use {
@@ -151,7 +140,13 @@ abstract class PathContentProvider(private val path: File) : ViewModel(), Inform
     override fun export(context: Context, intent: Intent, names: Iterable<String>) {
         ZipOutputStream(context.contentResolver.openOutputStream(intent.data!!)).use { zipOut ->
             for(name in names) {
-                val encodedFile = toFile(name)
+                val encodedFile = getExistingFile(name)
+
+                if(encodedFile == null) {
+                    Log.e("PathContentProvider", "$encodedFile does not exist!")
+                    continue
+                }
+
                 Log.d("FilesProvider", "Putting $name as $encodedFile into zip")
                 zipOut.putNextEntry(ZipEntry(encodedFile.name))
                 FileInputStream(encodedFile).use {
@@ -175,17 +170,15 @@ abstract class PathContentProvider(private val path: File) : ViewModel(), Inform
             return false
         }
 
-        try {
-            toFile(name).writeText(value.invoke())
-        } finally {
-            updateLists()
-        }
+        getNewFileForName(name).writeText(value.invoke())
 
         return true
     }
 
     override fun load(name: String, contentHolder: (String) -> Unit) {
-        contentHolder.invoke(toFile(name).readText())
+        val file = getExistingFile(name) ?: throw FileNotFoundException("$name not found on file system")
+
+        contentHolder.invoke(file.readText())
     }
 
     companion object {

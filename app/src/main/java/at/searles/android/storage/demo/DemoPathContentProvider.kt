@@ -15,6 +15,10 @@ class DemoPathContentProvider(context: Context) : PathContentProvider(context.ge
             .into(imageView)
     }
 
+    override fun getDescription(name: String): String {
+        return "Entry $name"
+    }
+
     companion object {
         private const val directoryName = "demo123"
     }
