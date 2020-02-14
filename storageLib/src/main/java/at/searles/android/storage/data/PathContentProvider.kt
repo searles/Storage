@@ -5,7 +5,7 @@ import android.content.Intent
 import android.util.Log
 import androidx.core.content.FileProvider
 import androidx.lifecycle.ViewModel
-import at.searles.stringsort.NaturalComparator
+import at.searles.commons.strings.NaturalComparator
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileNotFoundException

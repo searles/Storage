@@ -12,6 +12,7 @@ import android.view.*
 import android.widget.SearchView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.Toolbar
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -25,7 +26,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import at.searles.android.storage.data.InformationProvider
 import at.searles.android.storage.dialog.RenameDialogFragment
-import at.searles.stringsort.NaturalPatternMatcher
+import at.searles.commons.strings.NaturalPatternMatcher
 import java.util.*
 
 open class StorageActivity : AppCompatActivity(), LifecycleOwner, RenameDialogFragment.Callback {
@@ -38,6 +39,10 @@ open class StorageActivity : AppCompatActivity(), LifecycleOwner, RenameDialogFr
     private lateinit var selectionTracker: SelectionTracker<String>
     private lateinit var adapter: StorageAdapter
 
+    private val toolbar: Toolbar by lazy {
+        findViewById<Toolbar>(R.id.toolbar)
+    }
+
     private var selectionActionMode: ActionMode? = null
 
     private var filterPattern = ""
@@ -45,6 +50,8 @@ open class StorageActivity : AppCompatActivity(), LifecycleOwner, RenameDialogFr
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.storage_activity_main)
+
+        setSupportActionBar(toolbar)
 
         title = intent.getStringExtra(titleKey)
 

@@ -8,6 +8,7 @@ import android.view.Menu
 import android.view.MenuItem
 import android.widget.Button
 import android.widget.EditText
+import androidx.appcompat.widget.Toolbar
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import at.searles.android.storage.OpenSaveActivity
@@ -17,7 +18,6 @@ import at.searles.android.storage.dialog.ReplaceExistingDialogFragment
 import at.searles.storage.R
 
 class DemoActivity : OpenSaveActivity(), ReplaceExistingDialogFragment.Callback, DiscardAndOpenDialogFragment.Callback {
-
 
     override val fileNameEditor: EditText by lazy {
         findViewById<EditText>(R.id.nameEditText)
@@ -39,6 +39,10 @@ class DemoActivity : OpenSaveActivity(), ReplaceExistingDialogFragment.Callback,
         get() = contentEditText.text.toString()
         set(value) {contentEditText.setText(value)}
 
+    private val toolbar: Toolbar by lazy {
+        findViewById<Toolbar>(R.id.toolbar)
+    }
+
     override fun createReturnIntent(): Intent {
         return Intent()
     }
@@ -46,6 +50,11 @@ class DemoActivity : OpenSaveActivity(), ReplaceExistingDialogFragment.Callback,
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.demo)
+
+        setSupportActionBar(toolbar)
+
+        toolbar.subtitle = "Subtitle"
+        toolbar.setNavigationIcon(R.drawable.ic_edit_24dp)
     }
 
     override fun onResume() {
