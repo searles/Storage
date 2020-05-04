@@ -46,7 +46,7 @@ abstract class StorageManagerActivity(private val pathName: String) : AppCompatA
     private var selectionActionMode: ActionMode? = null
 
     private var filterPattern = ""
-    private lateinit var storageDataCache: StorageDataCache // TODO refresh whenever necessary!
+    private lateinit var storageDataCache: StorageDataCache
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

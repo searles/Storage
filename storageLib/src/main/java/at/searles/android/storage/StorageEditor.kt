@@ -32,7 +32,11 @@ abstract class StorageEditor<A>(
     private var isModified = false
 
     abstract fun createStorageDataCache(provider: StorageProvider): StorageDataCache
-    abstract fun createReturnIntent(): Intent
+
+    val returnIntent: Intent
+        get() = createReturnIntent(name, callback.value)
+
+    protected abstract fun createReturnIntent(name: String?, value: A): Intent
 
     val storageDataCache by lazy { createStorageDataCache(provider) }
 
@@ -121,9 +125,16 @@ abstract class StorageEditor<A>(
         }
     }
 
+    /**
+     * Useful right after creation to update the UI
+     */
+    fun fireStorageItemStatus() {
+        callback.onStorageItemChanged(name, isModified)
+    }
+
     fun notifyValueModified() {
         isModified = true
-        callback.onStorageItemChanged(name, isModified)
+        fireStorageItemStatus()
     }
 
     fun onSaveInstanceState(outState: Bundle) {
@@ -156,7 +167,7 @@ abstract class StorageEditor<A>(
         if(isActivityCanceled) {
             activity.setResult(Activity.RESULT_CANCELED, Intent())
         } else {
-            activity.setResult(Activity.RESULT_OK, createReturnIntent())
+            activity.setResult(Activity.RESULT_OK, createReturnIntent(name, callback.value))
         }
         activity.finish()
     }

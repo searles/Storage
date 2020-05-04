@@ -30,6 +30,12 @@ class DemoActivity : StorageEditorCallback<String>, AppCompatActivity() {
 
     override lateinit var storageEditor: StorageEditor<String>
 
+    override var value: String
+        get() = contentEditText.text.toString()
+        set(value) {
+            contentEditText.setText(value)
+        }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.demo)
@@ -43,12 +49,6 @@ class DemoActivity : StorageEditorCallback<String>, AppCompatActivity() {
 
         storageEditor = DemoStorageEditor(this, storageProvider)
     }
-
-    override var value: String
-        get() = contentEditText.text.toString()
-        set(value) {
-            contentEditText.setText(value)
-        }
 
     override fun onStorageItemChanged(name: String?, isModified: Boolean) {
         toolbar.subtitle = if(isModified && name != null) {
@@ -72,6 +72,8 @@ class DemoActivity : StorageEditorCallback<String>, AppCompatActivity() {
 
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
         })
+
+        storageEditor.fireStorageItemStatus()
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
