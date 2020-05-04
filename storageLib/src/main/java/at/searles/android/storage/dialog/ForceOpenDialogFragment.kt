@@ -1,15 +1,13 @@
 package at.searles.android.storage.dialog
 
 import android.app.Dialog
-import androidx.fragment.app.DialogFragment
-import androidx.appcompat.app.AlertDialog
 import android.os.Bundle
+import androidx.appcompat.app.AlertDialog
+import androidx.fragment.app.DialogFragment
 import at.searles.android.storage.R
+import at.searles.android.storage.StorageEditorCallback
 
-/**
- * Parent activity must implement the can-save-
- */
-class DiscardAndOpenDialogFragment : DialogFragment() {
+class ForceOpenDialogFragment : DialogFragment() {
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         val name = arguments?.getString(nameKey)!!
@@ -19,7 +17,7 @@ class DiscardAndOpenDialogFragment : DialogFragment() {
                 .setMessage(context!!.resources.getString(R.string.discardChangesQuestion, name))
                 .setNegativeButton(android.R.string.no) { _, _ -> }
                 .setPositiveButton(android.R.string.yes) { _, _ ->
-                    (activity as Callback).discardAndOpen(name)
+                    (activity as StorageEditorCallback<*>).storageEditor.forceOpen(name)
                 }
                 .create()
     }
@@ -27,16 +25,11 @@ class DiscardAndOpenDialogFragment : DialogFragment() {
     companion object {
         const val nameKey = "name"
 
-        fun create(name: String): DiscardAndOpenDialogFragment {
-            return DiscardAndOpenDialogFragment().also {
-                val args = Bundle()
-                args.putString(nameKey, name)
-                it.arguments = args
-            }
-        }
-    }
+        fun newInstance(name: String): ForceOpenDialogFragment {
+            val args = Bundle()
+            args.putString(nameKey, name)
 
-    interface Callback {
-        fun discardAndOpen(name: String)
+            return ForceOpenDialogFragment().apply { arguments = args }
+        }
     }
 }

@@ -11,12 +11,11 @@ import androidx.recyclerview.selection.SelectionTracker
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import at.searles.android.storage.data.InformationProvider
+import at.searles.android.storage.data.StorageDataCache
 
-class StorageAdapter(private val context: Context, private val informationProvider: InformationProvider) : ListAdapter<SpannableString, StorageAdapter.EntryViewHolder>(
+class StorageAdapter(private val context: Context, private val storageDataCache: StorageDataCache) : ListAdapter<SpannableString, StorageAdapter.EntryViewHolder>(
     DiffCallback
 ) {
-
     private lateinit var selectionTracker: SelectionTracker<String>
     var listener: Listener? = null
 
@@ -54,8 +53,8 @@ class StorageAdapter(private val context: Context, private val informationProvid
             // set ui
             nameTextView.text = name
 
-            descriptionTextView.text = informationProvider.getDescription(name.toString())
-            informationProvider.setImageInView(name.toString(), iconImageView)
+            descriptionTextView.text = storageDataCache.getDescription(name.toString())
+            iconImageView.setImageBitmap(storageDataCache.getBitmap(name.toString()))
 
             itemView.isActivated = isSelected
         }
@@ -77,7 +76,6 @@ class StorageAdapter(private val context: Context, private val informationProvid
 
     interface Listener {
         fun itemClickedAt(view: View, position: Int)
-
     }
 
     companion object {

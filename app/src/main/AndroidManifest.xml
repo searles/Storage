@@ -16,9 +16,11 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity android:name="at.searles.android.storage.demo.DemoStorageManagerActivity" />
+
         <provider
                 android:name="androidx.core.content.FileProvider"
-                android:authorities="at.searles.storage.fileprovider"
+                android:authorities="at.searles.storage.fileprovider2"
                 android:exported="false"
                 android:grantUriPermissions="true">
             <meta-data

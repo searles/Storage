@@ -3,13 +3,12 @@
               android:orientation="vertical"
               android:layout_width="match_parent"
               android:layout_height="match_parent">
-
-    <AutoCompleteTextView
-            android:id="@+id/renameEditText"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:ems="10"
-            android:hint="@string/new_name">
-    </AutoCompleteTextView>
+        <AutoCompleteTextView
+                android:id="@+id/saveAsEditText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ems="10"
+                android:hint="@string/new_name">
+        </AutoCompleteTextView>
 
 </LinearLayout>

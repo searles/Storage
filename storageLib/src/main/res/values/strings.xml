@@ -7,13 +7,16 @@
     <string name="share">Share</string>
     <string name="renameFail">Could not rename to \"%s\"</string>
     <string name="discardChangesQuestion">Discard changes and open \"%s\"?</string>
-    <string name="unsavedChanges">There are unsaved changes</string>
+    <string name="unsavedChanges">Unsaved Changes</string>
     <string name="entryExists">\"%s\" already exists</string>
     <string name="replaceExistingEntryQuestion">Replace existing entry?</string>
     <string name="importPartlyFailed">%d (of %d) items were not imported because they already existed</string>
-    <string name="error">An error occurred: %s</string>
+    <string name="importSuccessful">%d items were imported</string>
+    <string name="error">Error: %s</string>
     <string name="deleteFail">Could not delete %d items</string>
     <string name="returnWithoutSavingQuestion">Return without saving?</string>
-    <string name="cancelWithoutSavingQuestion">Close without saving?</string>
+    <string name="cancelWithoutSavingQuestion">Cancel without saving?</string>
     <string name="search">Search</string>
+    <string name="noNameProvided">Cannot save because no name has been provided</string>
+    <string name="saveAs">Save As</string>
 </resources>

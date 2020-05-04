@@ -5,6 +5,7 @@ import androidx.fragment.app.DialogFragment
 import androidx.appcompat.app.AlertDialog
 import android.os.Bundle
 import at.searles.android.storage.R
+import at.searles.android.storage.StorageEditorCallback
 
 /**
  * Parent activity must implement the can-save-
@@ -12,14 +13,14 @@ import at.searles.android.storage.R
 class ReplaceExistingDialogFragment : DialogFragment() {
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
-        val name = arguments?.getString(nameKey)!!
+        val newName = arguments?.getString(nameKey)!!
 
         return AlertDialog.Builder(activity!!)
-                .setTitle(getString(R.string.entryExists, name))
+                .setTitle(getString(R.string.entryExists, newName))
                 .setMessage(R.string.replaceExistingEntryQuestion)
                 .setNegativeButton(android.R.string.no) { _, _ -> }
                 .setPositiveButton(android.R.string.yes) { _, _ ->
-                    (activity as Callback).replaceExistingAndSave(name)
+                    (activity as StorageEditorCallback<*>).storageEditor.forceSaveAs(newName)
                 }
                 .create()
     }
@@ -27,16 +28,14 @@ class ReplaceExistingDialogFragment : DialogFragment() {
     companion object {
         const val nameKey = "name"
 
-        fun create(key: String): ReplaceExistingDialogFragment {
-            return ReplaceExistingDialogFragment().also {
-                val args = Bundle()
-                args.putString(nameKey, key)
-                it.arguments = args
+        fun newInstance(newName: String): ReplaceExistingDialogFragment {
+            val args = Bundle().apply {
+                putString(nameKey, newName)
+            }
+
+            return ReplaceExistingDialogFragment().apply {
+                arguments = args
             }
         }
-    }
-
-    interface Callback {
-        fun replaceExistingAndSave(name: String)
     }
 }

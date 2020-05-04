@@ -1,9 +1,9 @@
 package at.searles.android.storage
 
 import android.app.Activity
-import android.content.Context
 import android.content.Intent
 import android.graphics.Typeface
+import android.net.Uri
 import android.os.Bundle
 import android.text.Spannable
 import android.text.SpannableString
@@ -13,9 +13,6 @@ import android.widget.SearchView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
-import androidx.lifecycle.LifecycleOwner
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.selection.ItemDetailsLookup
 import androidx.recyclerview.selection.ItemKeyProvider
 import androidx.recyclerview.selection.SelectionPredicates.createSelectAnything
@@ -24,14 +21,17 @@ import androidx.recyclerview.selection.StorageStrategy
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import at.searles.android.storage.data.InformationProvider
+import at.searles.android.storage.data.StorageDataCache
+import at.searles.android.storage.data.StorageProvider
 import at.searles.android.storage.dialog.RenameDialogFragment
 import at.searles.commons.strings.NaturalPatternMatcher
 import java.util.*
+import kotlin.collections.ArrayList
 
-open class StorageActivity : AppCompatActivity(), LifecycleOwner, RenameDialogFragment.Callback {
+abstract class StorageManagerActivity(private val pathName: String) : AppCompatActivity() {
 
-    private lateinit var informationProvider: InformationProvider
+    lateinit var storageProvider: StorageProvider
+        private set
 
     private lateinit var active: List<String>
     private lateinit var activePositions: Map<String, Int>
@@ -46,6 +46,7 @@ open class StorageActivity : AppCompatActivity(), LifecycleOwner, RenameDialogFr
     private var selectionActionMode: ActionMode? = null
 
     private var filterPattern = ""
+    private lateinit var storageDataCache: StorageDataCache // TODO refresh whenever necessary!
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -53,13 +54,12 @@ open class StorageActivity : AppCompatActivity(), LifecycleOwner, RenameDialogFr
 
         setSupportActionBar(toolbar)
 
-        title = intent.getStringExtra(titleKey)
-
-        // set up data
-        this.informationProvider = getInformationProvider()
-
         // set up data structures for viewing items
-        adapter = StorageAdapter(this, informationProvider)
+        storageProvider = StorageProvider(pathName, this)
+
+        storageDataCache = createStorageDataCache()
+
+        adapter = StorageAdapter(this, storageDataCache)
 
         adapter.listener = object: StorageAdapter.Listener {
             override fun itemClickedAt(view: View, position: Int) {
@@ -109,6 +109,8 @@ open class StorageActivity : AppCompatActivity(), LifecycleOwner, RenameDialogFr
 
         updateActiveKeys()
     }
+
+    abstract fun createStorageDataCache(): StorageDataCache
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         val inflater = menuInflater
@@ -193,60 +195,61 @@ open class StorageActivity : AppCompatActivity(), LifecycleOwner, RenameDialogFr
         }
 
         if (intent != null && requestCode == importCode) {
-            val importedBySuccess = informationProvider.import(this, intent)
-            updateActiveKeys()
-            importedBySuccess.forEach { (name, status) -> if(status) selectionTracker.select(name) }
-            val failCount = importedBySuccess.count { (_, status) -> !status }
-
-            if(failCount > 0) {
-                Toast.makeText(
-                    this,
-                    resources.getString(R.string.importPartlyFailed, failCount, importedBySuccess.size),
-                    Toast.LENGTH_LONG
-                ).show()
-            }
-
-            return
+            import(intent.data!!)
         }
 
         if(intent != null && requestCode == exportCode) {
-            informationProvider.export(this, intent, selectionTracker.selection)
+            storageProvider.export(selectionTracker.selection.toList(), intent.data!!)
         }
     }
 
-    private fun getInformationProvider(): InformationProvider {
-        val clazzName = intent.getStringExtra(providerClassNameKey)!!
+    private fun import(uri: Uri) {
+        val importedValues = storageProvider.import(uri)
 
-        @Suppress("UNCHECKED_CAST")
-        val clazz = Class.forName(clazzName) as Class<ViewModel>
-        val ctor = clazz.getConstructor(Context::class.java)
+        // policy: existing entries are not overwritten.
+        val success = ArrayList<String>()
+        val failed = ArrayList<String>()
 
-        return (ViewModelProvider(this,
-            object: ViewModelProvider.Factory {
-                override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                    @Suppress("UNCHECKED_CAST")
-                    return ctor.newInstance(this@StorageActivity) as T
-                }
+        importedValues.forEach { (name, value) ->
+            if(!storageProvider.exists(name)) {
+                storageProvider.save(name, value)
+                success.add(name)
+            } else {
+                failed.add(name)
             }
-        )[clazz] as InformationProvider)
+        }
+
+        updateActiveKeys()
+        success.forEach { name -> selectionTracker.select(name) }
+
+        if(failed.isNotEmpty()) {
+            Toast.makeText(
+                this,
+                resources.getString(R.string.importPartlyFailed, failed.size, importedValues.size),
+                Toast.LENGTH_LONG
+            ).show()
+        } else {
+            Toast.makeText(
+                this,
+                resources.getString(R.string.importSuccessful, success.size),
+                Toast.LENGTH_SHORT
+            ).show()
+        }
+
+        return
     }
 
     private val actionModeCallback = object : ActionMode.Callback {
-        // Called when the action mode is created; startActionMode() was called
         override fun onCreateActionMode(mode: ActionMode, menu: Menu): Boolean {
-            // Inflate a menu resource providing context menu items
             val inflater: MenuInflater = mode.menuInflater
             inflater.inflate(R.menu.storage_context_menu, menu)
             return true
         }
 
-        // Called each time the action mode is shown. Always called after onCreateActionMode, but
-        // may be called multiple times if the mode is invalidated.
         override fun onPrepareActionMode(mode: ActionMode, menu: Menu): Boolean {
-            return false // Return false if nothing is done
+            return false
         }
 
-        // Called when the user selects a contextual menu item
         override fun onActionItemClicked(mode: ActionMode, item: MenuItem): Boolean {
             return when (item.itemId) {
                 R.id.selectAll -> {
@@ -259,7 +262,7 @@ open class StorageActivity : AppCompatActivity(), LifecycleOwner, RenameDialogFr
                     true
                 }
                 R.id.renameItems -> {
-                    RenameDialogFragment.create(selectionTracker.selection.first())
+                    RenameDialogFragment.newInstance(selectionTracker.selection.first())
                         .show(supportFragmentManager, "dialog")
                     true
                 }
@@ -279,7 +282,6 @@ open class StorageActivity : AppCompatActivity(), LifecycleOwner, RenameDialogFr
             }
         }
 
-        // Called when the user exits the action mode
         override fun onDestroyActionMode(mode: ActionMode) {
             if(selectionActionMode == mode) {
                 selectionTracker.clearSelection()
@@ -295,7 +297,7 @@ open class StorageActivity : AppCompatActivity(), LifecycleOwner, RenameDialogFr
             }
 
             val selectedCount = selectionTracker.selection.size()
-            val count = getInformationProvider().size()
+            val count = storageProvider.size
 
             selectionActionMode!!.title = "$selectedCount ($count) selected"
 
@@ -317,34 +319,32 @@ open class StorageActivity : AppCompatActivity(), LifecycleOwner, RenameDialogFr
         selectionTracker.clearSelection()
 
         try {
-            val status = informationProvider.deleteAll(selection)
-
-            val notDeleted = status.filter { !it.value }.keys
+            val notDeleted = storageProvider.deleteAll(selection)
 
             if(notDeleted.isNotEmpty()) {
-                notification(resources.getString(R.string.deleteFail, notDeleted.count()))
+                Toast.makeText(this, resources.getString(R.string.deleteFail, notDeleted.size), Toast.LENGTH_LONG).show()
             }
 
             notDeleted.forEach {
                 selectionTracker.select(it)
             }
         } catch(th: Throwable) {
-            errorNotification(th)
+            Toast.makeText(this, resources.getString(R.string.error, th.localizedMessage), Toast.LENGTH_LONG).show()
         }
 
         updateActiveKeys()
     }
 
-    override fun rename(oldName: String, newName: String) {
+    fun rename(oldName: String, newName: String) {
         selectionTracker.deselect(oldName)
 
         val status: Boolean
 
         try {
-            status = informationProvider.rename(oldName, newName)
+            status = storageProvider.rename(oldName, newName)
         } catch(th: Throwable) {
             selectionTracker.select(oldName)
-            errorNotification(th)
+            Toast.makeText(this, resources.getString(R.string.error, th.localizedMessage), Toast.LENGTH_LONG).show()
             return
         }
 
@@ -357,14 +357,6 @@ open class StorageActivity : AppCompatActivity(), LifecycleOwner, RenameDialogFr
         }
     }
 
-    private fun notification(msg: String) {
-        Toast.makeText(this, msg, Toast.LENGTH_LONG).show()
-    }
-
-    private fun errorNotification(th: Throwable) {
-        Toast.makeText(this, resources.getString(R.string.error, th.localizedMessage), Toast.LENGTH_LONG).show()
-    }
-
     /**
      * Selects all active (!) names
      */
@@ -374,7 +366,7 @@ open class StorageActivity : AppCompatActivity(), LifecycleOwner, RenameDialogFr
 
     private fun updateActiveKeys() {
         val pattern = filterPattern
-        val names = informationProvider.getNames()
+        val names = storageProvider.names
 
         this.active = if(pattern.isEmpty()) {
             ArrayList(names)
@@ -398,7 +390,7 @@ open class StorageActivity : AppCompatActivity(), LifecycleOwner, RenameDialogFr
     }
 
     private fun shareSelection() {
-        val intent = informationProvider.share(this, selectionTracker.selection)
+        val intent = storageProvider.share(selectionTracker.selection.toList())
         startActivity(Intent.createChooser(intent, getString(R.string.share)))
     }
 
@@ -470,11 +462,9 @@ open class StorageActivity : AppCompatActivity(), LifecycleOwner, RenameDialogFr
     }
 
     companion object {
-        const val titleKey: String = "title"
         const val importCode = 463
         const val exportCode = 326
         const val nameKey = "name"
         const val filterPatternKey = "filterPatternKey"
-        const val providerClassNameKey = "providerClassName"
     }
 }
