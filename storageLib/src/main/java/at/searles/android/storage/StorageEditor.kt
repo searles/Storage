@@ -33,10 +33,11 @@ abstract class StorageEditor<A>(
 
     abstract fun createStorageDataCache(provider: StorageProvider): StorageDataCache
 
-    val returnIntent: Intent
-        get() = createReturnIntent(name, callback.value)
+    fun getReturnIntent(target: Intent): Intent {
+        return createReturnIntent(target, name, callback.value)
+    }
 
-    protected abstract fun createReturnIntent(name: String?, value: A): Intent
+    protected abstract fun createReturnIntent(target: Intent, name: String?, value: A): Intent
 
     val storageDataCache by lazy { createStorageDataCache(provider) }
 
@@ -165,9 +166,9 @@ abstract class StorageEditor<A>(
 
     internal fun finishWithoutSaving(isActivityCanceled: Boolean) {
         if(isActivityCanceled) {
-            activity.setResult(Activity.RESULT_CANCELED, Intent())
+            activity.setResult(Activity.RESULT_CANCELED, activity.intent)
         } else {
-            activity.setResult(Activity.RESULT_OK, createReturnIntent(name, callback.value))
+            activity.setResult(Activity.RESULT_OK, createReturnIntent(activity.intent, name, callback.value))
         }
         activity.finish()
     }

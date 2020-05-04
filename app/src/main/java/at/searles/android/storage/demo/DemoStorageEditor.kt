@@ -7,7 +7,7 @@ import at.searles.android.storage.data.StorageDataCache
 import at.searles.android.storage.data.StorageProvider
 
 class DemoStorageEditor(callback: StorageEditorCallback<String>, provider: StorageProvider) : StorageEditor<String>(provider, callback, DemoStorageManagerActivity::class.java) {
-    override fun createReturnIntent(name: String?, value: String): Intent {
+    override fun createReturnIntent(target: Intent, name: String?, value: String): Intent {
         error("not implemented")
     }
 

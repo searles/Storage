@@ -73,12 +73,15 @@ class DemoActivity : StorageEditorCallback<String>, AppCompatActivity() {
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
         })
 
-        storageEditor.fireStorageItemStatus()
+//        storageEditor.fireStorageItemStatus()
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.demo_main_menu, menu)
         saveMenuItem = menu.findItem(R.id.save)
+
+        storageEditor.fireStorageItemStatus()
+
         return true
     }
 
