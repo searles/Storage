@@ -75,11 +75,9 @@ class StorageProvider(private val pathName: String, private val context: Context
         val notDeleted = ArrayList<String>()
 
         names.forEach {
-            it to {
-                if(!getExistingFileForName(it).delete()) {
-                    Log.i(javaClass.simpleName, "Could not delete $it")
-                    notDeleted.add(it)
-                }
+            if(!getExistingFileForName(it).delete()) {
+                Log.i(javaClass.simpleName, "Could not delete $it")
+                notDeleted.add(it)
             }
         }
 
@@ -123,7 +121,15 @@ class StorageProvider(private val pathName: String, private val context: Context
                 val entry: ZipEntry = zipIn.nextEntry ?: break
 
                 try {
-                    val value = load(zipIn)
+                    val value = load(object: InputStream() {
+                        override fun read(): Int {
+                            return zipIn.read()
+                        }
+
+                        override fun close() {
+                            // do nothing.
+                        }
+                    })
                     val name = decode(entry.name)
                     importedEntries[name] = value
                 } catch(e: Exception) {
@@ -142,7 +148,16 @@ class StorageProvider(private val pathName: String, private val context: Context
         ZipOutputStream(outputStream).use { zipOut ->
             for(name in names) {
                 zipOut.putNextEntry(ZipEntry(encode(name)))
-                save(zipOut, load(name))
+
+                save(object: OutputStream() {
+                    override fun write(b: Int) {
+                        zipOut.write(b)
+                    }
+
+                    override fun close() {
+                        // do nothing.
+                    }
+                }, load(name))
                 zipOut.closeEntry()
             }
         }
