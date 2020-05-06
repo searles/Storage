@@ -147,7 +147,8 @@ abstract class StorageEditor<A>(
         if(savedInstanceState != null) {
             name = savedInstanceState.getString(nameKey)
             isModified = savedInstanceState.getBoolean(isModifiedKey)
-            callback.onStorageItemChanged(name, isModified)
+
+            // Caller must ensure that fireStatus is called.
         }
     }
 
@@ -161,6 +162,7 @@ abstract class StorageEditor<A>(
             return false
         }
 
+        (activity as StorageEditorCallback<*>).storageEditor.finishWithoutSaving(isActivityCanceled)
         return true
     }
 

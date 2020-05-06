@@ -1,8 +1,8 @@
 package at.searles.android.storage.dialog
 
-import android.app.AlertDialog
 import android.app.Dialog
 import android.os.Bundle
+import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.DialogFragment
 import at.searles.android.storage.R
 import at.searles.android.storage.StorageEditorCallback

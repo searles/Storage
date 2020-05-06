@@ -48,6 +48,12 @@ class DemoActivity : StorageEditorCallback<String>, AppCompatActivity() {
         val storageProvider = StorageProvider("demo", this)
 
         storageEditor = DemoStorageEditor(this, storageProvider)
+        storageEditor.onRestoreInstanceState(savedInstanceState)
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        storageEditor.onSaveInstanceState(outState)
     }
 
     override fun onStorageItemChanged(name: String?, isModified: Boolean) {
@@ -72,8 +78,6 @@ class DemoActivity : StorageEditorCallback<String>, AppCompatActivity() {
 
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
         })
-
-//        storageEditor.fireStorageItemStatus()
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -98,6 +102,12 @@ class DemoActivity : StorageEditorCallback<String>, AppCompatActivity() {
             R.id.saveAs -> {
                 storageEditor.onSaveAs()
                 true
+            }
+            R.id.finish -> {
+                storageEditor.onFinish(false)
+            }
+            R.id.cancel -> {
+                storageEditor.onFinish(true)
             }
             else -> {
                 super.onOptionsItemSelected(item)

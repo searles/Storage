@@ -14,8 +14,8 @@
     <string name="importSuccessful">%d items were imported</string>
     <string name="error">Error: %s</string>
     <string name="deleteFail">Could not delete %d items</string>
-    <string name="returnWithoutSavingQuestion">Return without saving?</string>
-    <string name="cancelWithoutSavingQuestion">Cancel without saving?</string>
+    <string name="returnWithoutSavingQuestion">Return item without saving?</string>
+    <string name="cancelWithoutSavingQuestion">Discard changes and close?</string>
     <string name="search">Search</string>
     <string name="noNameProvided">Cannot save because no name has been provided</string>
     <string name="saveAs">Save As</string>
