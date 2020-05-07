@@ -8,6 +8,7 @@ import android.os.Bundle
 import android.text.Spannable
 import android.text.SpannableString
 import android.text.style.StyleSpan
+import android.util.Log
 import android.view.*
 import android.widget.SearchView
 import android.widget.Toast
@@ -21,6 +22,7 @@ import androidx.recyclerview.selection.StorageStrategy
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import at.searles.android.storage.data.ImportFragment
 import at.searles.android.storage.data.StorageDataCache
 import at.searles.android.storage.data.StorageProvider
 import at.searles.android.storage.dialog.RenameDialogFragment
@@ -49,13 +51,13 @@ abstract class StorageManagerActivity(private val pathName: String) : AppCompatA
     private lateinit var storageDataCache: StorageDataCache
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        storageProvider = StorageProvider(pathName, this)
         super.onCreate(savedInstanceState)
         setContentView(R.layout.storage_activity_main)
 
         setSupportActionBar(toolbar)
 
         // set up data structures for viewing items
-        storageProvider = StorageProvider(pathName, this)
 
         storageDataCache = createStorageDataCache()
 
@@ -204,37 +206,21 @@ abstract class StorageManagerActivity(private val pathName: String) : AppCompatA
     }
 
     private fun import(uri: Uri) {
-        val importedValues = storageProvider.import(uri)
+        val fragment = ImportFragment.newInstance(uri)
+        supportFragmentManager.beginTransaction().add(fragment, "import").commit()
+    }
 
-        // policy: existing entries are not overwritten.
-        val success = ArrayList<String>()
-        val failed = ArrayList<String>()
+    fun finishImport(importedList: List<String>) {
+        val fragment = supportFragmentManager.findFragmentByTag("import")
 
-        importedValues.forEach { (name, value) ->
-            if(!storageProvider.exists(name)) {
-                storageProvider.save(name, value)
-                success.add(name)
-            } else {
-                failed.add(name)
-            }
+        if(fragment == null) {
+            Log.e(javaClass.simpleName, "import fragment not found!")
+        } else {
+            supportFragmentManager.beginTransaction().remove(fragment).commit()
         }
 
         updateActiveKeys()
-        success.forEach { name -> selectionTracker.select(name) }
-
-        if(failed.isNotEmpty()) {
-            Toast.makeText(
-                this,
-                resources.getString(R.string.importPartlyFailed, failed.size, importedValues.size),
-                Toast.LENGTH_LONG
-            ).show()
-        } else {
-            Toast.makeText(
-                this,
-                resources.getString(R.string.importSuccessful, success.size),
-                Toast.LENGTH_SHORT
-            ).show()
-        }
+        importedList.forEach { name -> selectionTracker.select(name) }
 
         return
     }

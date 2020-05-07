@@ -25,7 +25,7 @@ class StorageProvider(private val pathName: String, private val context: Context
         return URLEncoder.encode(name, StandardCharsets.UTF_8.toString())
     }
 
-    private fun decode(filename: String): String {
+    fun decode(filename: String): String {
         return URLDecoder.decode(filename, StandardCharsets.UTF_8.toString())
     }
 
@@ -114,6 +114,9 @@ class StorageProvider(private val pathName: String, private val context: Context
     }
 
     fun readZipFromIs(inputStream: InputStream): Map<String, String> {
+        // TODO: Rethink concept of import:
+        // ImportFragment that shows a dialog whenever a duplicate is encountered
+        //
         val importedEntries: HashMap<String, String> = HashMap()
 
         ZipInputStream(inputStream).use { zipIn ->
