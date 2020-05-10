@@ -82,7 +82,7 @@ abstract class StorageEditor<A>(
         }
     }
 
-    internal fun forceOpen(newName: String) {
+    fun forceOpen(newName: String) {
         // this is also called if nothing has to be discarded.
         try {
             val value = deserialize(provider.load(newName))
@@ -111,7 +111,7 @@ abstract class StorageEditor<A>(
         forceSaveAs(name)
     }
 
-    internal fun forceSaveAs(newName: String) {
+    fun forceSaveAs(newName: String) {
         try {
             provider.save(newName, serialize(callback.value))
             storageDataCache.invalidate()

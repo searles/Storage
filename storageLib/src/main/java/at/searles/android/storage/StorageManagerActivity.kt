@@ -219,6 +219,10 @@ abstract class StorageManagerActivity(private val pathName: String) : AppCompatA
             supportFragmentManager.beginTransaction().remove(fragment).commit()
         }
 
+        if(importedList.isEmpty()) {
+            Toast.makeText(this, getString(R.string.nothingImported), Toast.LENGTH_SHORT).show()
+        }
+
         updateActiveKeys()
         importedList.forEach { name -> selectionTracker.select(name) }
 

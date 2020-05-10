@@ -25,7 +25,7 @@ abstract class StorageDataCache(private val provider: StorageProvider) {
         return descriptionCache.getOrPut(name, { loadDescription(name) })
     }
 
-    public fun invalidate() {
+    fun invalidate() {
         names.clear()
         names.addAll(provider.names)
         bitmapCache.clear()
