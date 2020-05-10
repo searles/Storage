@@ -22,6 +22,7 @@ import androidx.recyclerview.selection.StorageStrategy
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import at.searles.android.storage.data.Exporter
 import at.searles.android.storage.data.ImportFragment
 import at.searles.android.storage.data.StorageDataCache
 import at.searles.android.storage.data.StorageProvider
@@ -201,7 +202,7 @@ abstract class StorageManagerActivity(private val pathName: String) : AppCompatA
         }
 
         if(intent != null && requestCode == exportCode) {
-            storageProvider.export(selectionTracker.selection.toList(), intent.data!!)
+            Exporter(this, storageProvider).export(selectionTracker.selection.toList(), intent.data!!)
         }
     }
 
@@ -380,7 +381,7 @@ abstract class StorageManagerActivity(private val pathName: String) : AppCompatA
     }
 
     private fun shareSelection() {
-        val intent = storageProvider.share(selectionTracker.selection.toList())
+        val intent = Exporter(this, storageProvider).share(selectionTracker.selection.toList())
         startActivity(Intent.createChooser(intent, getString(R.string.share)))
     }
 

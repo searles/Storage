@@ -15,13 +15,13 @@ import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
 import java.util.zip.ZipOutputStream
 
-class StorageProvider(private val pathName: String, private val context: Context) {
+class StorageProvider(val pathName: String, private val context: Context) {
 
     val path: File = context.getDir(pathName, 0)
     val size: Int
         get() = path.listFiles()!!.size
 
-    private fun encode(name: String): String {
+    fun encode(name: String): String {
         return URLEncoder.encode(name, StandardCharsets.UTF_8.toString())
     }
 
@@ -108,88 +108,19 @@ class StorageProvider(private val pathName: String, private val context: Context
         }
     }
 
-    fun import(uri: Uri): Map<String, String> {
-        val inStream = context.contentResolver.openInputStream(uri)!!
-        return readZipFromIs(inStream)
-    }
 
-    fun readZipFromIs(inputStream: InputStream): Map<String, String> {
-        // TODO: Rethink concept of import:
-        // ImportFragment that shows a dialog whenever a duplicate is encountered
-        //
-        val importedEntries: HashMap<String, String> = HashMap()
+    fun findNextAvailableName(name: String): String {
+        var index = 1
 
-        ZipInputStream(inputStream).use { zipIn ->
-            while (true) {
-                val entry: ZipEntry = zipIn.nextEntry ?: break
+        while(true) {
+            val newName = "$name ($index)"
 
-                try {
-                    val value = load(object: InputStream() {
-                        override fun read(): Int {
-                            return zipIn.read()
-                        }
-
-                        override fun close() {
-                            // do nothing.
-                        }
-                    })
-                    val name = decode(entry.name)
-                    importedEntries[name] = value
-                } catch(e: Exception) {
-                    Log.i(javaClass.simpleName, "Could not read ${entry.name}")
-                    e.printStackTrace()
-                }
-
-                zipIn.closeEntry()
+            if(!exists(newName)) {
+                return newName
             }
+
+            index++
         }
-
-        return importedEntries
-    }
-
-    fun writeZipToOs(names: List<String>, outputStream: OutputStream) {
-        ZipOutputStream(outputStream).use { zipOut ->
-            for(name in names) {
-                zipOut.putNextEntry(ZipEntry(encode(name)))
-
-                save(object: OutputStream() {
-                    override fun write(b: Int) {
-                        zipOut.write(b)
-                    }
-
-                    override fun close() {
-                        // do nothing.
-                    }
-                }, load(name))
-                zipOut.closeEntry()
-            }
-        }
-    }
-
-    fun share(names: List<String>): Intent {
-
-        val outFile = File.createTempFile(
-            "${pathName}_${System.currentTimeMillis()}",
-            ".zip",
-            context.externalCacheDir
-        )
-
-        writeZipToOs(names, FileOutputStream(outFile))
-
-        val contentUri = FileProvider.getUriForFile(context,
-            FILE_PROVIDER, outFile)
-
-        return Intent().apply {
-            action = Intent.ACTION_SEND
-            putExtra(Intent.EXTRA_STREAM, contentUri)
-            type =
-                mimeType
-        }
-    }
-
-    fun export(names: List<String>, uri: Uri) {
-        val outputStream = context.contentResolver.openOutputStream(uri)!!
-        writeZipToOs(names, outputStream)
     }
 
     companion object {

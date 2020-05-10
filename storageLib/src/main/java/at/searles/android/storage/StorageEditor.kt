@@ -10,7 +10,7 @@ import at.searles.android.storage.data.StorageDataCache
 import at.searles.android.storage.data.StorageProvider
 import at.searles.android.storage.dialog.FinishWithoutSavingDialogFragment
 import at.searles.android.storage.dialog.ForceOpenDialogFragment
-import at.searles.android.storage.dialog.ReplaceExistingDialogFragment
+import at.searles.android.storage.dialog.SaveStrategyQuestionDialog
 import at.searles.android.storage.dialog.SaveAsDialogFragment
 
 /**
@@ -104,7 +104,7 @@ abstract class StorageEditor<A>(
 
     fun saveAs(name: String) {
         if(provider.exists(name)) {
-            ReplaceExistingDialogFragment.newInstance(name).show(activity.supportFragmentManager, "dialog")
+            SaveStrategyQuestionDialog.newInstance(name).show(activity.supportFragmentManager, "dialog")
             return
         }
 

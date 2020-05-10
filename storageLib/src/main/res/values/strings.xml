@@ -21,11 +21,12 @@
     <string name="saveAs">Save As</string>
     <string name="icon">icon</string>
     <string name="cancel">Cancel</string>
-    <string name="ok">Ok</string>
+    <string name="ok">OK</string>
     <string name="alreadyExists">%s already exists</string>
     <string name="skip">Skip</string>
     <string name="renameImported">Append Index</string>
     <string name="overwriteExisting">Replace Existing</string>
     <string name="applyToAll">Apply to all existing items</string>
     <string name="nothingImported">No elements were imported</string>
+    <string name="saveAsName">Save as %s</string>
 </resources>

@@ -30,6 +30,8 @@ class DemoActivity : StorageEditorCallback<String>, AppCompatActivity() {
 
     override lateinit var storageEditor: StorageEditor<String>
 
+    override lateinit var storageProvider: StorageProvider
+
     override var value: String
         get() = contentEditText.text.toString()
         set(value) {
@@ -45,7 +47,7 @@ class DemoActivity : StorageEditorCallback<String>, AppCompatActivity() {
         toolbar.subtitle = "Subtitle"
         toolbar.setNavigationIcon(R.drawable.ic_edit_24dp)
 
-        val storageProvider = StorageProvider("demo", this)
+        storageProvider = StorageProvider("demo", this)
 
         storageEditor = DemoStorageEditor(this, storageProvider)
         storageEditor.onRestoreInstanceState(savedInstanceState)

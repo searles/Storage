@@ -18,9 +18,9 @@ import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
 
 class ImportFragment: Fragment() {
-    var zipInputStream: ZipInputStream? = null
-    var zipEntry: ZipEntry? = null
-    var importedList = ArrayList<String>()
+    private var zipInputStream: ZipInputStream? = null
+    private var zipEntry: ZipEntry? = null
+    private var importedList = ArrayList<String>()
 
     private lateinit var provider: StorageProvider
     private var strategy = Strategy.AlwaysAsk
@@ -102,7 +102,7 @@ class ImportFragment: Fragment() {
             return when(strategy) {
                 Strategy.AlwaysAsk -> { createQuestionDialog(name); false }
                 Strategy.OverwriteAll -> { forceImportZipEntry(name); true }
-                Strategy.RenameAll -> { forceImportZipEntry(findNextAvailableName(name)); true }
+                Strategy.RenameAll -> { forceImportZipEntry(provider.findNextAvailableName(name)); true }
                 Strategy.SkipAll -> { advanceToNextZipEntry(); true }
             }
         }
@@ -114,20 +114,6 @@ class ImportFragment: Fragment() {
     private fun advanceToNextZipEntry() {
         zipInputStream!!.closeEntry()
         zipEntry = null
-    }
-
-    private fun findNextAvailableName(name: String): String {
-        var index = 1
-
-        while(true) {
-            val newName = "$name ($index)"
-
-            if(!provider.exists(newName)) {
-                return newName
-            }
-
-            index++
-        }
     }
 
     private fun forceImportZipEntry(name: String) {
@@ -180,7 +166,7 @@ class ImportFragment: Fragment() {
             } else {
                 when {
                     renameRadioButton.isChecked -> {
-                        forceImportZipEntry(findNextAvailableName(name))
+                        forceImportZipEntry(provider.findNextAvailableName(name))
                     }
                     overwriteRadioButton.isChecked -> {
                         forceImportZipEntry(name)
