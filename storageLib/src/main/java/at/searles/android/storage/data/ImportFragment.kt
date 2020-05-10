@@ -154,7 +154,7 @@ class ImportFragment: Fragment() {
 
     @SuppressLint("InflateParams")
     private fun createQuestionDialog(name: String) {
-        val view = LayoutInflater.from(context!!).inflate(R.layout.import_question_dialog, null)
+        val view = LayoutInflater.from(context!!).inflate(R.layout.storage_import_question_dialog, null)
 
         val renameRadioButton = view.findViewById<RadioButton>(R.id.renameRadioButton)
         val skipRadioButton = view.findViewById<RadioButton>(R.id.skipRadioButton)

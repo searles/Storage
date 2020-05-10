@@ -26,7 +26,7 @@ class RenameDialogFragment: DialogFragment() {
         val oldNameKey = arguments!!.getString(oldNameKey)!!
 
         @SuppressLint("InflateParams")
-        val view = LayoutInflater.from(context!!).inflate(R.layout.rename_dialog, null)
+        val view = LayoutInflater.from(context!!).inflate(R.layout.storage_rename_dialog, null)
 
         renameEditText = view.findViewById<AutoCompleteTextView>(R.id.renameEditText)!!.apply {
             threshold = 1

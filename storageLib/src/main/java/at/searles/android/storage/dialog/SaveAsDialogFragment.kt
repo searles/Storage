@@ -16,7 +16,7 @@ class SaveAsDialogFragment: DialogFragment() {
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         @SuppressLint("InflateParams")
-        val view = LayoutInflater.from(context).inflate(R.layout.save_as_dialog, null)
+        val view = LayoutInflater.from(context).inflate(R.layout.storage_save_as_dialog, null)
 
         val oldNameKey = arguments!!.getString(oldNameKey)!!
 
