@@ -147,6 +147,8 @@ class ImportFragment: Fragment() {
         val overwriteRadioButton = view.findViewById<RadioButton>(R.id.overwriteRadioButton)
         val applyToAllCheckBox = view.findViewById<CheckBox>(R.id.applyToAllCheckBox)
 
+        renameRadioButton.text = context!!.resources.getString(R.string.renameImported, provider.findNextAvailableName(name))
+
         fun applyStrategy() {
             if(applyToAllCheckBox.isChecked) {
                 strategy = when {
@@ -178,13 +180,13 @@ class ImportFragment: Fragment() {
                 }
             }
 
-            doImport() // TODO put in ui thread
+            doImport() // TODO put in ui thread?
         }
 
         questionDialog = AlertDialog.Builder(context!!) // TODO Window leak!
             .setView(view)
             .setCancelable(false)
-            .setTitle(context!!.resources.getString(R.string.alreadyExists, name))
+            .setTitle(context!!.resources.getString(R.string.alreadyExists, name, provider.pathName))
             .setNegativeButton(R.string.cancel) { dialog, _ ->
                 dialog.dismiss()
                 questionDialog = null

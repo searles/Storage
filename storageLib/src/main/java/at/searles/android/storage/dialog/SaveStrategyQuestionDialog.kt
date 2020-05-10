@@ -26,12 +26,12 @@ class SaveStrategyQuestionDialog : DialogFragment() {
 
         val renamedName = (activity as StorageEditorCallback<*>).storageProvider.findNextAvailableName(name)
 
-        renameRadioButton.text = activity!!.resources.getString(R.string.saveAsName, renamedName)
+        renameRadioButton.text = activity!!.resources.getString(R.string.appendIndexToName, renamedName)
 
         return AlertDialog.Builder(context!!)
             .setView(view)
             .setCancelable(false)
-            .setTitle(context!!.resources.getString(R.string.alreadyExists, name))
+            .setTitle(context!!.resources.getString(R.string.alreadyExists, name, (activity as StorageEditorCallback<*>).storageProvider.pathName))
             .setNegativeButton(R.string.cancel) { dialog, _ ->
                 dialog.dismiss()
             }
