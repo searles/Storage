@@ -13,5 +13,5 @@
     <item
             android:id="@+id/importItems"
             android:icon="@drawable/ic_file_download_24dp"
-            android:title="@string/importLabel" />
+            android:title="@string/importItems" />
 </menu>

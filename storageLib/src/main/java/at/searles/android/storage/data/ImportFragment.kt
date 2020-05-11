@@ -44,13 +44,13 @@ class ImportFragment: Fragment() {
             try {
                 zipInputStream = ZipInputStream(inputStream)
             } catch(e: Exception) {
-                Toast.makeText(context, context.resources.getString(R.string.errorMsg, e.message), Toast.LENGTH_LONG).show()
+                Toast.makeText(context, context.resources.getString(R.string.errorWithMsg, e.message), Toast.LENGTH_LONG).show()
                 finishImport()
                 return
             }
         }
 
-        doImport() // TODO put into ui thread
+        doImport()
     }
 
     override fun onDetach() {
@@ -180,10 +180,10 @@ class ImportFragment: Fragment() {
                 }
             }
 
-            doImport() // TODO put in ui thread?
+            doImport()
         }
 
-        questionDialog = AlertDialog.Builder(context!!) // TODO Window leak!
+        questionDialog = AlertDialog.Builder(context!!)
             .setView(view)
             .setCancelable(false)
             .setTitle(context!!.resources.getString(R.string.xAlreadyExistsInY, name, provider.pathName))
@@ -203,7 +203,7 @@ class ImportFragment: Fragment() {
     enum class Strategy { AlwaysAsk, OverwriteAll, RenameAll, SkipAll }
 
     companion object {
-        private val uriKey = "uri"
+        private const val uriKey = "uri"
 
         fun newInstance(uri: Uri): ImportFragment {
             val args = Bundle().apply {

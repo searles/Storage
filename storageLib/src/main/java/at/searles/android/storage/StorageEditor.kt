@@ -44,7 +44,7 @@ abstract class StorageEditor<A>(
     fun onSave() {
         if(name == null) {
             Log.i(javaClass.simpleName, "Save was clicked although 'name' is null")
-            Toast.makeText(activity, activity.getString(R.string.noNameProvided), Toast.LENGTH_LONG).show()
+            Toast.makeText(activity, activity.getString(R.string.cannotSaveBecauseNoName), Toast.LENGTH_LONG).show()
             return
         }
 
@@ -56,7 +56,7 @@ abstract class StorageEditor<A>(
             provider.save(name!!, serialize(callback.value))
             storageDataCache.invalidate()
         } catch (th: Throwable) {
-            Toast.makeText(activity, activity.resources.getString(R.string.errorMsg, th.localizedMessage), Toast.LENGTH_LONG).show()
+            Toast.makeText(activity, activity.resources.getString(R.string.errorWithMsg, th.localizedMessage), Toast.LENGTH_LONG).show()
             return
         }
 
@@ -93,7 +93,7 @@ abstract class StorageEditor<A>(
 
             callback.onStorageItemChanged(newName, isModified)
         } catch(th: Throwable) {
-            Toast.makeText(activity, activity.resources.getString(R.string.errorMsg, th.localizedMessage), Toast.LENGTH_LONG).show()
+            Toast.makeText(activity, activity.resources.getString(R.string.errorWithMsg, th.localizedMessage), Toast.LENGTH_LONG).show()
             return
         }
     }
@@ -121,7 +121,7 @@ abstract class StorageEditor<A>(
 
             callback.onStorageItemChanged(newName, isModified)
         } catch(th: Throwable) {
-            Toast.makeText(activity, activity.resources.getString(R.string.errorMsg, th.localizedMessage), Toast.LENGTH_LONG).show()
+            Toast.makeText(activity, activity.resources.getString(R.string.errorWithMsg, th.localizedMessage), Toast.LENGTH_LONG).show()
             return
         }
     }

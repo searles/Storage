@@ -26,7 +26,7 @@ class SaveStrategyQuestionDialog : DialogFragment() {
 
         val renamedName = (activity as StorageEditorCallback<*>).storageProvider.findNextAvailableName(name)
 
-        renameRadioButton.text = activity!!.resources.getString(R.string.appendIndexToName, renamedName)
+        renameRadioButton.text = activity!!.resources.getString(R.string.appendIndexToX, renamedName)
 
         return AlertDialog.Builder(context!!)
             .setView(view)

@@ -1,21 +1,14 @@
 package at.searles.android.storage.data
 
 import android.content.Context
-import android.content.Intent
-import android.net.Uri
 import android.util.Log
-import androidx.core.content.FileProvider
 import at.searles.commons.strings.NaturalComparator
 import java.io.*
 import java.net.URLDecoder
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
-import java.text.SimpleDateFormat
-import java.util.zip.ZipEntry
-import java.util.zip.ZipInputStream
-import java.util.zip.ZipOutputStream
 
-class StorageProvider(val pathName: String, private val context: Context) {
+class StorageProvider(val pathName: String, context: Context) {
 
     val path: File = context.getDir(pathName, 0)
     val size: Int

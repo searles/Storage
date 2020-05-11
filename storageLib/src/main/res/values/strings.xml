@@ -1,5 +1,5 @@
 <resources>
-    <string name="importLabel">Import</string>
+    <string name="importItems">Import</string>
     <string name="rename">Rename</string>
     <string name="export">Export</string>
     <string name="delete">Delete</string>
@@ -9,12 +9,12 @@
     <string name="discardChangesQuestion">Discard changes and open \"%s\"?</string>
     <string name="unsavedChanges">Unsaved changes</string>
     <string name="xExistsInY">\"%s\" already exists in \"%s\"</string>
-    <string name="errorMsg">Error: %s</string>
+    <string name="errorWithMsg">Error: %s</string>
     <string name="deleteFailForNItems">Could not delete %d items</string>
     <string name="returnWithoutSavingQuestion">Return item without saving?</string>
     <string name="cancelWithoutSavingQuestion">Discard changes and close?</string>
     <string name="search">Search</string>
-    <string name="noNameProvided">Cannot save because no name has been provided</string>
+    <string name="cannotSaveBecauseNoName">Cannot save because no name has been provided</string>
     <string name="saveInXAs">Save in \"%s\" as</string>
     <string name="icon">icon</string>
     <string name="cancel">Cancel</string>
@@ -25,5 +25,5 @@
     <string name="overwriteExisting">Replace existing</string>
     <string name="applyToAll">Apply to all existing items</string>
     <string name="nothingImported">No elements were imported</string>
-    <string name="appendIndexToName">Append index (save as \"%s\")</string>
+    <string name="appendIndexToX">Append index (save as \"%s\")</string>
 </resources>
