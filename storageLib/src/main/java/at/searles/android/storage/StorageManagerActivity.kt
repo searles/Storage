@@ -313,14 +313,14 @@ abstract class StorageManagerActivity(private val pathName: String) : AppCompatA
             val notDeleted = storageProvider.deleteAll(selection)
 
             if(notDeleted.isNotEmpty()) {
-                Toast.makeText(this, resources.getString(R.string.deleteFail, notDeleted.size), Toast.LENGTH_LONG).show()
+                Toast.makeText(this, resources.getString(R.string.deleteFailForNItems, notDeleted.size), Toast.LENGTH_LONG).show()
             }
 
             notDeleted.forEach {
                 selectionTracker.select(it)
             }
         } catch(th: Throwable) {
-            Toast.makeText(this, resources.getString(R.string.error, th.localizedMessage), Toast.LENGTH_LONG).show()
+            Toast.makeText(this, resources.getString(R.string.errorMsg, th.localizedMessage), Toast.LENGTH_LONG).show()
         }
 
         updateActiveKeys()
@@ -335,7 +335,7 @@ abstract class StorageManagerActivity(private val pathName: String) : AppCompatA
             status = storageProvider.rename(oldName, newName)
         } catch(th: Throwable) {
             selectionTracker.select(oldName)
-            Toast.makeText(this, resources.getString(R.string.error, th.localizedMessage), Toast.LENGTH_LONG).show()
+            Toast.makeText(this, resources.getString(R.string.errorMsg, th.localizedMessage), Toast.LENGTH_LONG).show()
             return
         }
 
@@ -344,7 +344,7 @@ abstract class StorageManagerActivity(private val pathName: String) : AppCompatA
             selectionTracker.select(newName)
         } else {
             selectionTracker.select(oldName)
-            Toast.makeText(this, resources.getString(R.string.renameFail, newName), Toast.LENGTH_LONG).show()
+            Toast.makeText(this, resources.getString(R.string.couldNotRenameX, newName), Toast.LENGTH_LONG).show()
         }
     }
 

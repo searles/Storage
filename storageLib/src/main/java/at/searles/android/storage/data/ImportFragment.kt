@@ -44,7 +44,7 @@ class ImportFragment: Fragment() {
             try {
                 zipInputStream = ZipInputStream(inputStream)
             } catch(e: Exception) {
-                Toast.makeText(context, context.resources.getString(R.string.error, e.message), Toast.LENGTH_LONG).show()
+                Toast.makeText(context, context.resources.getString(R.string.errorMsg, e.message), Toast.LENGTH_LONG).show()
                 finishImport()
                 return
             }
@@ -147,7 +147,7 @@ class ImportFragment: Fragment() {
         val overwriteRadioButton = view.findViewById<RadioButton>(R.id.overwriteRadioButton)
         val applyToAllCheckBox = view.findViewById<CheckBox>(R.id.applyToAllCheckBox)
 
-        renameRadioButton.text = context!!.resources.getString(R.string.renameImported, provider.findNextAvailableName(name))
+        renameRadioButton.text = context!!.resources.getString(R.string.appendIndexName, provider.findNextAvailableName(name))
 
         fun applyStrategy() {
             if(applyToAllCheckBox.isChecked) {
@@ -186,7 +186,7 @@ class ImportFragment: Fragment() {
         questionDialog = AlertDialog.Builder(context!!) // TODO Window leak!
             .setView(view)
             .setCancelable(false)
-            .setTitle(context!!.resources.getString(R.string.alreadyExists, name, provider.pathName))
+            .setTitle(context!!.resources.getString(R.string.xAlreadyExistsInY, name, provider.pathName))
             .setNegativeButton(R.string.cancel) { dialog, _ ->
                 dialog.dismiss()
                 questionDialog = null

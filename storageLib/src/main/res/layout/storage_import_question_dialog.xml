@@ -19,7 +19,7 @@
                 android:id="@+id/renameRadioButton"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="@string/renameImported" />
+                android:text="@string/appendIndexName" />
 
         <RadioButton
                 android:id="@+id/overwriteRadioButton"

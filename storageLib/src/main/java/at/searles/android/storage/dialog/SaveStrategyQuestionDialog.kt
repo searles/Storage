@@ -31,7 +31,7 @@ class SaveStrategyQuestionDialog : DialogFragment() {
         return AlertDialog.Builder(context!!)
             .setView(view)
             .setCancelable(false)
-            .setTitle(context!!.resources.getString(R.string.alreadyExists, name, (activity as StorageEditorCallback<*>).storageProvider.pathName))
+            .setTitle(context!!.resources.getString(R.string.xAlreadyExistsInY, name, (activity as StorageEditorCallback<*>).storageProvider.pathName))
             .setNegativeButton(R.string.cancel) { dialog, _ ->
                 dialog.dismiss()
             }

@@ -36,7 +36,7 @@ class SaveAsDialogFragment: DialogFragment() {
 
         return AlertDialog.Builder(activity!!)
             .setView(view)
-            .setTitle(context!!.resources.getString(R.string.saveAs, storageEditorCallback.storageProvider.pathName))
+            .setTitle(context!!.resources.getString(R.string.saveInXAs, storageEditorCallback.storageProvider.pathName))
             .setPositiveButton(android.R.string.ok) { _, _ -> run { saveAs(); dismiss() } }
             .setNegativeButton(android.R.string.cancel) { _, _ -> dismiss() }
             .setCancelable(true)
